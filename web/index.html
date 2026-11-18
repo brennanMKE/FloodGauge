@@ -1,0 +1,691 @@
+<meta charset="utf-8">
+<title>Flood Gauge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column; a live 3D model with a staff-gauge readout beside it, then build notes. */
+:root {
+  --bg: #eef2f3;
+  --panel: #ffffff;
+  --fg: #14212a;
+  --muted: #586a74;
+  --line: #cfd8dc;
+  --accent: #1b7ea6;
+  --amber: #c9801f;
+  --scene: #e3e9eb;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1317; --panel: #121c22; --fg: #e2e9ed; --muted: #8fa1ab;
+    --line: #23333c; --accent: #4fb3d9; --amber: #e3a14a; --scene: #101a20; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1317; --panel: #121c22; --fg: #e2e9ed; --muted: #8fa1ab;
+  --line: #23333c; --accent: #4fb3d9; --amber: #e3a14a; --scene: #101a20; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+}
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+  display: grid; gap: 40px;
+}
+header { display: grid; gap: 8px; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+}
+h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(44px, 8vw, 76px);
+  line-height: .95; margin: 0; letter-spacing: -.01em; text-wrap: balance;
+}
+.lede { max-width: 62ch; margin: 0; color: var(--muted); font-size: 17px; }
+h2 {
+  font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.1;
+  margin: 0 0 12px; text-wrap: balance;
+}
+h3 { font-size: 15px; margin: 0 0 4px; font-weight: 600; }
+p { margin: 0 0 12px; }
+code { font-family: var(--font-mono); font-size: .9em; }
+
+/* viewer */
+.stage {
+  display: grid; grid-template-columns: minmax(0, 1fr) 220px;
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--scene);
+}
+#view { position: relative; min-height: 560px; min-width: 0; }
+#view canvas { display: block; width: 100%; height: 100%; position: absolute; inset: 0; touch-action: none; }
+#status {
+  position: absolute; left: 12px; bottom: 12px; font-family: var(--font-mono); font-size: 12px;
+  color: var(--muted); background: var(--panel); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--line);
+}
+.hint { position: absolute; right: 12px; top: 10px; font-size: 12px; color: var(--muted); }
+.readout {
+  background: var(--panel); border-left: 1px solid var(--line);
+  padding: 18px 16px; display: grid; gap: 16px; align-content: start;
+}
+.gauge-row { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: stretch; }
+/* staff gauge: the E-pattern on real stream gauges, 10 cm per block */
+.staff {
+  position: relative; height: 260px; border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
+  background:
+    repeating-linear-gradient(to top, transparent 0 4px, var(--fg) 4px 8px) left / 50% 100% no-repeat,
+    linear-gradient(var(--fg), var(--fg)) right / 6px 100% no-repeat,
+    var(--panel);
+}
+.staff-water {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  border-top: 2px solid var(--accent);
+}
+.big {
+  font-family: var(--font-display); font-size: 52px; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.unit { font-size: 20px; color: var(--muted); margin-left: 2px; }
+dl.stats { margin: 0; display: grid; gap: 8px; }
+dl.stats div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
+dl.stats dt { color: var(--muted); font-size: 13px; }
+dl.stats dd { margin: 0; font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.controls { display: grid; gap: 10px; }
+label { font-size: 13px; color: var(--muted); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+button {
+  font: 500 14px var(--font-body); color: var(--fg); background: transparent;
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; cursor: pointer;
+}
+button:hover { border-color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.stage { grid-template-areas: "bar bar" "view side"; }
+.views { grid-area: bar; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; background: var(--panel); border-bottom: 1px solid var(--line); align-items: center; }
+.views button { padding: 6px 12px; font-size: 13px; }
+.views .xray { margin-left: auto; display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
+#view { grid-area: view; }
+.readout { grid-area: side; }
+.note { grid-column: 1 / -1; padding: 12px 16px; background: var(--panel); border-top: 1px solid var(--line); font-size: 14px; max-width: none; margin: 0; min-height: 3.2em; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+
+/* content */
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 48px; }
+.cols > * { min-width: 0; }
+.chain { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.chain li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; }
+.chain .k { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); padding-top: 3px; }
+.chain p { margin: 0; }
+.formula {
+  font-family: var(--font-mono); font-size: 13px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 12px 14px; overflow-x: auto; white-space: pre;
+}
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+td.mono { font-family: var(--font-mono); font-size: 13px; white-space: nowrap; }
+.opt { border-top: 3px solid var(--amber); padding-top: 12px; }
+.opt.b { border-top-color: var(--line); }
+.tag { font-family: var(--font-mono); font-size: 11px; color: var(--amber); letter-spacing: .06em; text-transform: uppercase; }
+ul.plain { margin: 0; padding-left: 18px; }
+ul.plain li { margin-bottom: 6px; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+@media (max-width: 760px) {
+  .stage { grid-template-columns: 1fr; grid-template-areas: "bar" "view" "side"; }
+  .views .xray { margin-left: 0; }
+  .readout { border-left: 0; border-top: 1px solid var(--line); }
+  .staff { height: 140px; }
+  #view { min-height: 440px; }
+  .cols { grid-template-columns: 1fr; }
+  .chain li { grid-template-columns: 1fr; gap: 2px; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Backyard water level sensor · San Francisco, Nov 2026</div>
+    <h1>Flood Gauge</h1>
+    <p class="lede">A plastic bottle floats in a black ABS pipe. Rising water lifts it, a ball chain turns a pulley, and a magnet on the axle is read through a sealed plastic wall. The electronics stay dry indoors.</p>
+  </header>
+
+  <section class="stage" aria-label="3D model of the flood gauge">
+    <nav class="views" aria-label="Camera views">
+      <button type="button" data-view="yard">Yard</button>
+      <button type="button" data-view="mechanism">Pulley</button>
+      <button type="button" data-view="sensor">Sensor</button>
+      <button type="button" data-view="forces">Float &amp; weights</button>
+      <button type="button" data-view="inlet">Inlet holes</button>
+      <button type="button" data-view="shed">Into the shed</button>
+      <label class="xray"><input type="checkbox" id="xray"> X-ray pipe &amp; head</label>
+    </nav>
+    <div id="view">
+      <span class="hint">Drag to orbit · scroll to zoom</span>
+      <span id="status">Loading parts…</span>
+    </div>
+    <aside class="readout">
+      <div class="gauge-row">
+        <div class="staff" aria-hidden="true"><div class="staff-water" id="staffWater"></div></div>
+        <div>
+          <div class="eyebrow">Water depth</div>
+          <div class="big"><span id="depth">220</span><span class="unit">mm</span></div>
+        </div>
+      </div>
+      <dl class="stats">
+        <div><dt>Float rise</dt><dd id="rise">–</dd></div>
+        <div><dt>Pulley turns</dt><dd id="turns">–</dd></div>
+        <div><dt>AS5600 raw</dt><dd id="raw">–</dd></div>
+        <div><dt>Float state</dt><dd id="state">–</dd></div>
+        <div><dt>Float weight</dt><dd>150 g</dd></div>
+        <div><dt>Counterweight</dt><dd>100 g</dd></div>
+        <div><dt>Buoyancy now</dt><dd id="buoy">–</dd></div>
+      </dl>
+      <div class="legend"><span><i style="background:#e05a4f"></i>weight</span><span><i style="background:#2f9fd0"></i>buoyancy</span><span><i style="background:#c9801f"></i>chain pull</span></div>
+      <div class="controls">
+        <label for="level">Set water depth</label>
+        <input id="level" type="range" min="0" max="420" step="1" value="220">
+        <button id="storm" type="button" aria-pressed="false">Simulate a storm</button>
+      </div>
+    </aside>
+    <p class="note" id="note" aria-live="polite"></p>
+  </section>
+
+  <section class="cols">
+    <div>
+      <h2>How it works</h2>
+      <ul class="chain">
+        <li><span class="k">Pipe</span><p>A 3" ABS or PVC pipe is strapped upright to a wall or post. Holes near the bottom let floodwater in and keep waves and debris out.</p></li>
+        <li><span class="k">Float</span><p>A 500–700 mL bottle, at most 70 mm wide, with a spoon of sand so it hangs upright.</p></li>
+        <li><span class="k">Pulley</span><p>A printed sprocket with 30 ball pockets. Wet chain can't slip. One turn moves 180 mm of chain.</p></li>
+        <li><span class="k">Counter&shy;weight</span><p>Sand in a capped 1" pipe, hanging outside the pipe. It keeps the chain tight so the float follows the water down again.</p></li>
+        <li><span class="k">Sensor</span><p>A diametric magnet in the axle end and an AS5600 behind a 1.2 mm wall. That gives 4096 counts per turn, about 0.04 mm per count.</p></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Getting the balance right</h2>
+      <p>The float has to sink in air and rise in water:</p>
+      <div class="formula">float weight  &gt;  counterweight  &gt;  float weight − buoyancy</div>
+      <p style="margin-top:12px">The float has to be the heavier side. Put about 120 g of sand in the bottle so it weighs about 150 g, and use a 100 g counterweight. In a dry pipe the float wins by 50 g and sits on the bottom. When water arrives it only has to supply that 50 g of lift, which takes about 15 mm of submersion in a 66 mm bottle. From then on the float rides the water surface, and the counterweight keeps the chain tight in both directions.</p>
+      <h2 style="margin-top:28px">Reading the level</h2>
+      <div class="formula">level_mm = (turns × 4096 + raw) / 4096 × 180 − zero</div>
+      <p style="margin-top:12px">Sample at least twice a second so the pulley never moves more than half a turn between reads. Save <code>turns</code> to flash so a power cut doesn't lose it.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Long cable to an indoor ESP32</h2>
+    <p style="max-width:68ch">The ESP32 can live in the house or a shed. I2C, the sensor's default interface, is unreliable past about 1 m, so use one of these over outdoor Cat5e/Cat6:</p>
+    <div class="cols" style="margin-top:16px">
+      <div class="opt">
+        <div class="tag">Recommended</div>
+        <h3>PWM output</h3>
+        <p>Set the AS5600 OUT pin to PWM (<code>CONF.OUTS = 10</code>). Use three wires: 3.3 V, GND and OUT on a twisted pair. The ESP32 times the roughly 920 Hz duty cycle on any GPIO. This works for 10–30 m.</p>
+      </div>
+      <div class="opt b">
+        <div class="tag" style="color:var(--muted)">Alternative</div>
+        <h3>Differential I2C</h3>
+        <p>Put a PCA9615 board at each end. You keep full I2C access, including the magnet-strength warnings, and ESPHome's <code>as5600</code> component works unchanged.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Parts to make</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Part</th><th>File</th><th>Make with</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Head (cap, uprights, sensor pod)</td><td class="mono">head.stl</td><td>3D printer</td><td>Black ASA or PETG. Print sleeve-down with tree supports under the top plate.</td></tr>
+          <tr><td>Sprocket pulley</td><td class="mono">pulley.stl</td><td>3D printer</td><td>Prints flat with no supports. Push the magnet into the stub end.</td></tr>
+          <tr><td>Sensor pod lid</td><td class="mono">sensor_lid.stl</td><td>3D printer</td><td>Seal with foam gasket or silicone and four M3 screws.</td></tr>
+          <tr><td>Mounting plate</td><td class="mono">mount_plate.dxf</td><td>xTool P2 laser</td><td>6 mm plywood or acrylic, 120 × 260 mm. Two hose clamps hold the pipe.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="cols">
+    <div>
+      <h2>Key dimensions</h2>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><td>Pipe OD</td><td class="mono">88.9 mm (3" ABS DWV / Sch40)</td></tr>
+            <tr><td>Chain</td><td class="mono">#10 ball, 4.5 mm, 6.0 mm pitch</td></tr>
+            <tr><td>Pulley pitch dia.</td><td class="mono">57.3 mm · 30 pockets</td></tr>
+            <tr><td>Chain per turn</td><td class="mono">180 mm</td></tr>
+            <tr><td>Magnet to chip</td><td class="mono">≈ 2.5–3 mm</td></tr>
+            <tr><td>Cable gland</td><td class="mono">PG7, facing down</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h2>Siting</h2>
+      <ul class="plain">
+        <li>Put it in the lowest spot where water collects, against the house or a fence post. Low black pipe gets ignored.</li>
+        <li>Stand the pipe on a brick or drill plenty of holes in its bottom 10 cm so silt can't seal it.</li>
+        <li>The counterweight drops as water rises, so keep the space under it clear.</li>
+        <li>Measure your ball chain pitch and update <code>chain_pitch</code> in <code>cad/flood_head.py</code> before printing.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>First CAD pass, modelled in build123d. Not yet printed or tested.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  // ---- constants, mm, model frame Z-up (matches cad/flood_head.py) ----
+  const PITCH_R = 28.6479, AXIS_X = -28.6479, AXIS_Z = 43.1479, CW_X = -57.2958;
+  const PIPE_OR = 44.45, PIPE_IR = 38.0, PIPE_LEN = 600, GROUND = -PIPE_LEN;
+  const FLOAT_H = 200, FLOAT_R = 33, CHAIN_R = 2.25;
+  const CW_LEN = 150, CW_R = 16.7;
+  const FLOAT_G = 150, CW_G = 100;                       // grams
+  const AREA_CM2 = Math.PI * 3.3 * 3.3;                  // bottle cross-section
+  const DRAFT = (FLOAT_G - CW_G) / AREA_CM2 * 10;        // mm submerged when floating (~15)
+  const MAX_RISE = PIPE_LEN - 60 - FLOAT_H;
+  const CW_TOP0 = AXIS_Z - 120;
+  const POD_Y = 10.5;                                    // outer face of the +Y upright
+
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const view = document.getElementById('view');
+  const statusEl = document.getElementById('status');
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const V = (x, y, z) => new THREE.Vector3(x, z, -y);    // model (Z-up) -> world (Y-up)
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  view.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 2, 30000);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x4a5a3a, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.85); sun.position.set(1500, 3000, 2000); scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(-2000, 800, -1500); scene.add(fill);
+
+  const M = new THREE.Group(); M.rotation.x = -Math.PI / 2; scene.add(M);
+  const mat = (color, extra) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.6, metalness: 0.05 }, extra || {}));
+
+  const headMat = mat(0x2b2f33, { roughness: 0.55, transparent: true });
+  const lidMat = mat(0x3d4449, { transparent: true });
+  const pulleyMat = mat(0xc9801f, { roughness: 0.45 });
+  const blackABS = mat(0x2b2f33, { roughness: 0.55 });
+  const waterMat = mat(0x1b7ea6, { transparent: true, opacity: 0.4, depthWrite: false, roughness: 0.15 });
+  const bottleMat = mat(0xbfe3f0, { transparent: true, opacity: 0.6, roughness: 0.1 });
+  const sandMat = mat(0xc8b48a, { roughness: 0.95 });
+  const chainMat = mat(0x9aa3a8, { metalness: 0.6, roughness: 0.35 });
+  const steel = mat(0xb8c0c5, { metalness: 0.7, roughness: 0.3 });
+  const grassMat = mat(0x5d7a45, { roughness: 1 });
+  const sidingMat = mat(0x7d8c72, { roughness: 0.85 });
+  const frontWallMat = mat(0x7d8c72, { roughness: 0.85, transparent: true });
+  const roofMat = mat(0x3b3f42, { roughness: 0.8 });
+  const woodMat = mat(0xb08a5a, { roughness: 0.8 });
+  const cableMat = mat(0x1f2326, { roughness: 0.7 });
+
+  // pipe material: an alpha map punches real inlet holes in the bottom 100 mm
+  const holeCanvas = document.createElement('canvas');
+  holeCanvas.width = 560; holeCanvas.height = 1200;          // ~2 px per mm (279 mm round, 600 mm tall)
+  (function () {
+    const g = holeCanvas.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, 560, 1200);
+    g.fillStyle = '#000';
+    [20, 50, 80].forEach((hmm, row) => {
+      for (let i = 0; i < 8; i++) {
+        const x = ((i + (row % 2) * 0.5) / 8) * 560 + 35;
+        const y = 1200 - hmm * 2;
+        g.beginPath(); g.ellipse(x % 560, y, 12, 12, 0, 0, Math.PI * 2); g.fill();
+      }
+    });
+  })();
+  const holeTex = new THREE.CanvasTexture(holeCanvas);
+  const pipeMat = mat(0x1e2226, { roughness: 0.5, alphaMap: holeTex, alphaTest: 0.5, transparent: true, side: THREE.DoubleSide });
+
+  function zCyl(r, h, m, open, seg) {
+    const g = new THREE.CylinderGeometry(r, r, h, seg || 48, 1, !!open);
+    g.rotateX(Math.PI / 2);
+    return new THREE.Mesh(g, m);
+  }
+  function box(sx, sy, sz, m, x, y, z) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), m);
+    b.position.set(x, y, z); M.add(b); return b;
+  }
+
+  // ---------- yard ----------
+  box(9000, 9000, 20, grassMat, 0, 0, GROUND - 10);
+  const water = box(7000, 7000, 1, waterMat, 0, 0, GROUND);
+
+  // shed: wall the gauge is strapped to is at y = -60 (outer face)
+  const SX0 = -700, SX1 = 1100, SY0 = -60, SY1 = -1660, SH = 2000, WT = 20;
+  const front = box(SX1 - SX0, WT, SH, frontWallMat, (SX0 + SX1) / 2, SY0 - WT / 2, GROUND + SH / 2);
+  box(SX1 - SX0, WT, SH, sidingMat, (SX0 + SX1) / 2, SY1 + WT / 2, GROUND + SH / 2);
+  box(WT, SY0 - SY1, SH, sidingMat, SX0 + WT / 2, (SY0 + SY1) / 2, GROUND + SH / 2);
+  box(WT, SY0 - SY1, SH, sidingMat, SX1 - WT / 2, (SY0 + SY1) / 2, GROUND + SH / 2);
+  // door on the +x end
+  box(6, 800, 1800, woodMat, SX1 + 3, -700, GROUND + 900);
+  // gable roof, ridge along x
+  const halfD = (SY0 - SY1) / 2 + 120, rise = 500, slope = Math.hypot(halfD, rise);
+  [1, -1].forEach(s => {
+    const r = new THREE.Mesh(new THREE.BoxGeometry(SX1 - SX0 + 240, slope, 18), roofMat);
+    r.position.set((SX0 + SX1) / 2, (SY0 + SY1) / 2 + s * halfD / 2, GROUND + SH + rise / 2);
+    r.rotation.x = -s * Math.atan2(rise, halfD);
+    M.add(r);
+  });
+  // gable triangles
+  [SX0, SX1].forEach(x => {
+    const shp = new THREE.Shape();
+    shp.moveTo(-(SY0 - SY1) / 2, 0); shp.lineTo((SY0 - SY1) / 2, 0); shp.lineTo(0, rise - 10); shp.closePath();
+    const g = new THREE.ShapeGeometry(shp);
+    const m = new THREE.Mesh(g, mat(0x7d8c72, { side: THREE.DoubleSide, roughness: 0.85 }));
+    m.rotation.set(Math.PI / 2, Math.PI / 2, 0);
+    m.position.set(x, (SY0 + SY1) / 2, GROUND + SH);
+    M.add(m);
+  });
+  // shelf + ESP32 enclosure inside the shed
+  box(320, 200, 18, woodMat, 380, -190, 300);
+  box(110, 70, 50, mat(0xd7dcdf), 380, -170, 300 + 9 + 25);
+  box(40, 1.5, 22, mat(0x1d3f8f), 380, -134, 300 + 9 + 28);   // board peeking through clear lid side
+
+  // mounting plate + hose clamps on the shed wall
+  box(120, 6, 260, woodMat, 0, -57, -200);
+  [-130, -270].forEach(z => {
+    const c = new THREE.Mesh(new THREE.TorusGeometry(PIPE_OR + 1.5, 1.6, 8, 48), steel);
+    c.position.set(0, 0, z); M.add(c);
+  });
+
+  // pipe (outer + inner skins share the holed material)
+  const pipe = new THREE.Group();
+  const po = zCyl(PIPE_OR, PIPE_LEN, pipeMat, true); po.position.z = -PIPE_LEN / 2; pipe.add(po);
+  const pin = zCyl(PIPE_IR, PIPE_LEN, pipeMat, true); pin.position.z = -PIPE_LEN / 2; pipe.add(pin);
+  M.add(pipe);
+
+  // float: bottle + sand ballast
+  const prof = [[0, 0], [FLOAT_R - 4, 0], [FLOAT_R, 6], [FLOAT_R, 140], [FLOAT_R - 4, 158], [15, 182], [13, 188], [13, 200], [0, 200]]
+    .map(p => new THREE.Vector2(p[0], p[1]));
+  const bottleGeo = new THREE.LatheGeometry(prof, 48); bottleGeo.rotateX(Math.PI / 2);
+  const floatG = new THREE.Group();
+  floatG.add(new THREE.Mesh(bottleGeo, bottleMat));
+  const sand = zCyl(FLOAT_R - 3, 22, sandMat); sand.position.z = 12; floatG.add(sand);
+  const capB = zCyl(14, 10, mat(0x2e6fb0)); capB.position.z = 200; floatG.add(capB);
+  M.add(floatG);
+
+  // counterweight: sand in capped 1" pipe
+  const cwG = new THREE.Group();
+  const cwBody = zCyl(CW_R, CW_LEN, blackABS); cwBody.position.z = -CW_LEN / 2; cwG.add(cwBody);
+  [-9, -CW_LEN + 9].forEach(z => { const c = zCyl(CW_R + 2.5, 18, blackABS); c.position.z = z; cwG.add(c); });
+  M.add(cwG);
+
+  // chain
+  const chainF = zCyl(CHAIN_R, 1, chainMat, false, 10); M.add(chainF);
+  const chainC = zCyl(CHAIN_R, 1, chainMat, false, 10); M.add(chainC);
+  const wrap = new THREE.Mesh(new THREE.TorusGeometry(PITCH_R, CHAIN_R, 10, 48, Math.PI), chainMat);
+  wrap.rotation.x = Math.PI / 2; wrap.position.set(AXIS_X, 0, AXIS_Z); M.add(wrap);
+
+  // pulley pivot + diametric magnet (north/south halves so rotation is visible)
+  const pivot = new THREE.Group(); pivot.position.set(AXIS_X, 0, AXIS_Z); M.add(pivot);
+  [[0xd8433b, 0], [0x3b6fd8, Math.PI]].forEach(([c, a]) => {
+    const g = new THREE.CylinderGeometry(3, 3, 2.5, 24, 1, false, a, Math.PI);
+    const m = new THREE.Mesh(g, mat(c, { metalness: 0.4 }));
+    m.position.set(0, 8.7, 0); pivot.add(m);
+  });
+
+  // AS5600 board behind the 1.2 mm pod wall
+  const pcbY = POD_Y + 1.2 + 0.6 + 0.8;
+  const pcb = new THREE.Mesh(new THREE.BoxGeometry(23, 1.6, 23), mat(0x1f7a3a)); pcb.position.set(AXIS_X, pcbY, AXIS_Z); M.add(pcb);
+  const chip = new THREE.Mesh(new THREE.BoxGeometry(5, 1.2, 6), mat(0x111111)); chip.position.set(AXIS_X, pcbY - 1.4, AXIS_Z); M.add(chip);
+
+  // cable: pod gland -> around the pipe -> wall gland -> ESP32 on the shelf
+  const glandPod = [AXIS_X, 20.7, 25.1];
+  const pts = [glandPod, [AXIS_X, 21, 8], [AXIS_X + 5, 30, -15], [40, 55, -30], [80, 30, -45], [115, -20, -58],
+    [120, -60, -60], [125, -110, -60], [160, -130, 60], [260, -150, 250], [340, -165, 320], [360, -170, 330]]
+    .map(p => new THREE.Vector3(p[0], p[1], p[2]));
+  M.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 120, 3, 8, false), cableMat));
+  // glands: pod (PG7, facing down) and wall
+  const pg = zCyl(7, 10, mat(0x1a1a1a)); pg.position.set(glandPod[0], glandPod[1], glandPod[2] - 3); M.add(pg);
+  const wg = new THREE.Group();
+  const wgBody = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 34, 24), mat(0x1a1a1a)); wg.add(wgBody);
+  const wgNut = new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 6, 6), mat(0x1a1a1a)); wgNut.position.y = 10; wg.add(wgNut);
+  wg.position.set(120, -70, -60); M.add(wg);           // cylinder axis is model Y already
+
+  // ---------- printed parts ----------
+  let pending = 3;
+  function done() { if (--pending === 0) statusEl.hidden = true; }
+  const b64 = str => Uint8Array.from(atob(str), c => c.charCodeAt(0)).buffer;
+  function load(url, material, parent, offset) {
+    fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+      const q = new Int16Array(b64(d.pos)), p = new Float32Array(q.length);
+      for (let i = 0; i < q.length; i++) p[i] = q[i] * d.scale;
+      let geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(p, 3));
+      geo.setIndex(new THREE.BufferAttribute(new Uint32Array(b64(d.idx)), 1));
+      geo = geo.toNonIndexed(); geo.computeVertexNormals();
+      const m = new THREE.Mesh(geo, material);
+      if (offset) m.position.set(offset[0], offset[1], offset[2]);
+      parent.add(m); done();
+    }).catch(() => { statusEl.textContent = 'Could not load ' + url; });
+  }
+  load('head.json', headMat, M);
+  load('lid.json', lidMat, M);
+  load('pulley.json', pulleyMat, pivot, [-AXIS_X, 0, -AXIS_Z]);
+
+  // ---------- labels (always face the camera, drawn on top) ----------
+  function makeLabel(text, size, accent) {
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 160;
+    const tex = new THREE.CanvasTexture(c);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, sizeAttenuation: false }));
+    sp.renderOrder = 20;
+    sp.userData = { c, tex, size, accent };
+    setLabel(sp, text);
+    scene.add(sp); return sp;
+  }
+  function setLabel(sp, text) {
+    if (sp.userData.text === text) return;
+    sp.userData.text = text;
+    const { c, tex, size, accent } = sp.userData, g = c.getContext('2d');
+    g.clearRect(0, 0, c.width, c.height);
+    g.font = '500 64px "IBM Plex Sans", system-ui, sans-serif';
+    const w = Math.min(c.width - 8, g.measureText(text).width + 64);
+    g.fillStyle = 'rgba(16,24,30,0.86)';
+    g.beginPath(); g.roundRect ? g.roundRect((c.width - w) / 2, 24, w, 112, 24) : g.rect((c.width - w) / 2, 24, w, 112); g.fill();
+    g.fillStyle = accent || '#ffffff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text, c.width / 2, 82);
+    tex.needsUpdate = true;
+    sp.scale.set(0.34, 0.34 * 160 / 1024, 1);
+  }
+  const L = {};
+  function label(key, text, size, pos, accent) { L[key] = makeLabel(text, size, accent); L[key].position.copy(V(...pos)); }
+  label('gauge', 'Flood gauge (3" black ABS)', 900, [0, 0, 260]);
+  label('wallgland', 'Cable gland through shed wall', 900, [260, 0, -40]);
+  label('esp', 'ESP32 + USB power, dry inside', 900, [380, -170, 420]);
+  label('pulley', 'Sprocket: 180 mm of chain per turn', 150, [-28, 0, 100]);
+  label('toFloat', 'to float', 70, [25, 0, -40]);
+  label('toCw', 'to counterweight', 100, [-95, 0, -40]);
+  label('magnet', 'Magnet in axle end (behind board)', 110, [-28, 20, 72]);
+  label('as5600', 'AS5600 board, 1.2 mm wall away', 110, [-28, 30, 58]);
+  label('podgland', 'PG7 cable gland, faces down', 100, [-28, 25, 10]);
+  label('inlet', 'Inlet holes: floodwater enters here', 260, [0, 0, -450]);
+  label('fW', '', 190, [0, 0, 0], '#ff9a8f');
+  label('fB', '', 190, [0, 0, 0], '#8fd3f0');
+  label('cwW', '', 190, [0, 0, 0], '#ff9a8f');
+  const labelSets = {
+    yard: ['gauge', 'wallgland', 'esp'],
+    mechanism: ['pulley', 'toFloat', 'toCw'],
+    sensor: ['magnet', 'as5600', 'podgland'],
+    forces: ['fW', 'fB', 'cwW'],
+    inlet: ['inlet'],
+    shed: ['wallgland', 'esp'],
+  };
+
+  // ---------- force arrows ----------
+  const ARROW = 0.9;                                   // mm per gram
+  function mkArrow(color) {
+    const m = new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true });
+    const g = new THREE.Group();
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 1, 12), m); g.add(shaft);
+    const head = new THREE.Mesh(new THREE.ConeGeometry(10, 26, 16), m); g.add(head);
+    g.userData = { shaft, head }; g.renderOrder = 15; g.traverse(o => o.renderOrder = 15);
+    scene.add(g); return g;
+  }
+  const arrFW = mkArrow(0xe05a4f), arrFB = mkArrow(0x2f9fd0), arrFT = mkArrow(0xc9801f);
+  const arrCW = mkArrow(0xe05a4f), arrCT = mkArrow(0xc9801f);
+  const arrows = [arrFW, arrFB, arrFT, arrCW, arrCT];
+  const DOWN = -1, UP = 1;
+  function setArrow(a, dir, origin, grams) {
+    const len = Math.max(36, grams * ARROW), sl = len - 26;
+    a.position.copy(origin); a.rotation.z = dir === UP ? 0 : Math.PI;
+    a.userData.shaft.scale.y = sl; a.userData.shaft.position.y = sl / 2;
+    a.userData.head.position.y = sl + 13;
+  }
+
+  // ---------- state ----------
+  const slider = document.getElementById('level');
+  const out = id => document.getElementById(id);
+  let level = +slider.value;
+
+  function apply(Lmm) {
+    const floating = Lmm > DRAFT;
+    const rise = floating ? Math.min(MAX_RISE, Lmm - DRAFT) : 0;
+    const buoy = floating ? FLOAT_G - CW_G : AREA_CM2 * Lmm / 10;
+    const fBot = GROUND + rise;
+    floatG.position.set(0, 0, fBot);
+    const fTop = fBot + FLOAT_H + 5;
+    chainF.scale.z = AXIS_Z - fTop; chainF.position.set(0, 0, (AXIS_Z + fTop) / 2);
+    const cwTop = CW_TOP0 - rise;
+    cwG.position.set(CW_X, 0, cwTop);
+    chainC.scale.z = AXIS_Z - cwTop; chainC.position.set(CW_X, 0, (AXIS_Z + cwTop) / 2);
+    pivot.rotation.y = -rise / PITCH_R;
+    const h = Math.max(0.5, Lmm);
+    water.scale.z = h; water.position.z = GROUND + h / 2; water.visible = Lmm > 0.5;
+
+    // forces
+    const fMid = fBot + 100;
+    setArrow(arrFW, DOWN, V(60, 0, fMid), FLOAT_G);
+    setArrow(arrFB, UP, V(0, 0, fBot - 20), Math.max(buoy, 1));
+    setArrow(arrFT, UP, V(0, 0, fTop), CW_G);
+    setArrow(arrCW, DOWN, V(CW_X, 0, cwTop - CW_LEN - 10), CW_G);
+    setArrow(arrCT, UP, V(CW_X, 0, cwTop + 10), CW_G);
+    arrFB.visible = arrowsOn && buoy > 1;
+    setLabel(L.fW, 'Float (bottle + sand) ' + FLOAT_G + ' g ↓');
+    setLabel(L.fB, 'Buoyancy ' + Math.round(buoy) + ' g ↑');
+    setLabel(L.cwW, 'Counterweight ' + CW_G + ' g ↓');
+    L.fW.position.copy(V(230, 0, fMid + 20));
+    L.fB.position.copy(V(150, 0, fBot - 50));
+    L.cwW.position.copy(V(CW_X, 0, cwTop - CW_LEN - 140));
+
+    const turns = Math.floor(rise / 180);
+    const raw = Math.round(((rise % 180) / 180) * 4096) % 4096;
+    out('depth').textContent = Math.round(Lmm);
+    out('rise').textContent = rise.toFixed(0) + ' mm';
+    out('turns').textContent = (rise / 180).toFixed(2);
+    out('raw').textContent = turns + ' × 4096 + ' + raw;
+    out('buoy').textContent = Math.round(buoy) + ' g';
+    out('state').textContent = floating ? 'Floating' : 'Resting on bottom';
+    out('staffWater').style.height = Math.min(100, (Lmm / 500) * 100) + '%';
+  }
+
+  // ---------- views ----------
+  let arrowsOn = false;
+  const xrayBox = document.getElementById('xray');
+  function setXray(on) {
+    xrayBox.checked = on;
+    pipeMat.opacity = on ? 0.22 : 1; pipeMat.depthWrite = !on;
+    headMat.opacity = on ? 0.25 : 1; headMat.depthWrite = !on;
+    lidMat.opacity = on ? 0.2 : 1; lidMat.depthWrite = !on;
+  }
+  xrayBox.addEventListener('change', () => setXray(xrayBox.checked));
+
+  const VIEWS = {
+    yard:      { t: [100, -300, -200], c: [1800, 2300, 1100], xray: false, arrows: false, shed: false },
+    mechanism: { t: [-28, 0, 20],      c: [120, 330, 120],    xray: false, arrows: false, shed: false },
+    sensor:    { t: [-28, 15, 40],     c: [150, 170, 105],    xray: true,  arrows: false, shed: false },
+    forces:    { t: [0, 0, -330],      c: [380, 1150, -250],  xray: true,  arrows: true,  shed: false },
+    inlet:     { t: [0, 0, -540],      c: [330, 480, -440],   xray: false, arrows: false, shed: false },
+    shed:      { t: [200, -150, 80],   c: [1150, 1350, 650],   xray: false, arrows: false, shed: true },
+  };
+  const NOTES = {
+    yard: 'The gauge is strapped to the shed wall at the low point of the yard. One cable runs from the sensor pod into the shed.',
+    mechanism: 'Float chain on the right and counterweight chain on the left. When water lifts the float, the counterweight takes up the slack and turns the pulley.',
+    sensor: 'X-ray view. The red/blue magnet turns with the axle, and the AS5600 reads its angle through the sealed pod wall. No shaft seal is needed.',
+    forces: 'In air the float (150 g) outweighs the counterweight (100 g), so it sinks to the bottom. Water only has to supply about 50 g of lift, which takes ~15 mm of submersion. Then the float rides up and down with the water.',
+    inlet: 'Rows of 12 mm holes in the bottom 100 mm let floodwater in, while waves and debris mostly stay out.',
+    shed: 'The cable passes through a gland in the shed wall, well above flood level. The ESP32 and its power supply sit on a dry shelf inside.',
+  };
+  let tween = null, current = 'yard';
+  function go(name, instant) {
+    const v = VIEWS[name]; current = name;
+    document.querySelectorAll('.views button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === name)));
+    out('note').textContent = NOTES[name];
+    setXray(v.xray);
+    arrowsOn = v.arrows; arrows.forEach(a => a.visible = arrowsOn);
+    frontWallMat.opacity = v.shed ? 0.18 : 1; frontWallMat.depthWrite = !v.shed;
+    Object.values(L).forEach(s => s.visible = false);
+    labelSets[name].forEach(k => L[k].visible = true);
+    const toC = V(...v.c), toT = V(...v.t);
+    if (instant || reduceMotion) { camera.position.copy(toC); controls.target.copy(toT); controls.update(); tween = null; }
+    else tween = { t0: performance.now(), fc: camera.position.clone(), ft: controls.target.clone(), toC, toT };
+    apply(level);
+  }
+  document.querySelectorAll('.views button').forEach(b => b.addEventListener('click', () => go(b.dataset.view)));
+
+  slider.addEventListener('input', () => { level = +slider.value; stopStorm(); apply(level); });
+  const stormBtn = document.getElementById('storm');
+  let storm = false, t0 = 0;
+  function stopStorm() { storm = false; stormBtn.setAttribute('aria-pressed', 'false'); stormBtn.textContent = 'Simulate a storm'; }
+  stormBtn.addEventListener('click', () => {
+    if (storm) { stopStorm(); return; }
+    storm = true; t0 = performance.now();
+    stormBtn.setAttribute('aria-pressed', 'true'); stormBtn.textContent = 'Stop storm';
+  });
+
+  function themeColors() { scene.background = new THREE.Color(tok('--scene') || '#e3e9eb'); }
+  themeColors();
+  if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', themeColors);
+  new MutationObserver(themeColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  function resize() {
+    const w = view.clientWidth, h = view.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(view);
+  resize();
+
+  const start = (location.hash || '').replace('#', '');
+  go(VIEWS[start] ? start : 'yard', true);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
+    Object.values(L).forEach(s => { const t = s.userData.text; s.userData.text = null; setLabel(s, t); });
+  });
+
+  function frame(now) {
+    if (storm) {
+      const t = ((now - t0) / 14000) % 1;
+      const Lmm = 400 * Math.pow(Math.sin(Math.PI * t), 1.6);
+      level = Lmm; slider.value = Math.round(Lmm); apply(Lmm);
+    }
+    if (tween) {
+      let k = Math.min(1, (now - tween.t0) / 1100); const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      camera.position.lerpVectors(tween.fc, tween.toC, e);
+      controls.target.lerpVectors(tween.ft, tween.toT, e);
+      if (k >= 1) tween = null;
+    }
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>

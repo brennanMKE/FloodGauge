@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+# CAD and mesh outputs: binary, no diffs
+*.stl  binary
+*.3mf  binary
+*.step -diff linguist-generated
+*.stp  -diff linguist-generated
+*.dxf  -diff linguist-generated
+
+# Generated web meshes
+web/*.json -diff linguist-generated
+
+# Images
+*.png binary
+*.jpg binary
