@@ -633,7 +633,6 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
     arrowsOn = v.arrows; arrows.forEach(a => a.visible = arrowsOn);
     frontWallMat.opacity = v.shed ? 0.18 : 1; frontWallMat.depthWrite = !v.shed;
     Object.values(L).forEach(s => s.visible = false);
-    labelSets[name].forEach(k => L[k].visible = true);
     const toC = V(...v.c), toT = V(...v.t);
     if (instant || reduceMotion) { camera.position.copy(toC); controls.target.copy(toT); controls.update(); tween = null; }
     else tween = { t0: performance.now(), fc: camera.position.clone(), ft: controls.target.clone(), toC, toT };
