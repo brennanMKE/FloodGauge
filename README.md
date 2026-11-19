@@ -1,40 +1,31 @@
 # Flood Gauge
 
-A cheap, deliberately low-tech water level sensor. A plastic bottle floats in a vertical pipe. As the water rises it lifts the bottle, and a ball chain over a pulley turns a magnet. A magnetic angle sensor reads the magnet through a sealed plastic wall, so nothing electrical touches water. An ESP32 kept somewhere dry (in the house or a shed) counts pulley turns and reports the water level over WiFi.
+A cheap, deliberately low-tech water level sensor, built from standard plumbing parts plus three small 3D-printed pieces. A plastic bottle floats in a vertical pipe. As the water rises it lifts the bottle, and a ball chain over a pulley turns a magnet. A magnetic angle sensor reads the magnet through a sealed plastic wall, so nothing electrical touches water. An ESP32 just inside the shed counts pulley turns and reports the water level over WiFi.
 
 Built during the November 2026 San Francisco floods.
 
-![Flood gauge strapped to a shed wall, with the sensor cable running inside](docs/view_yard.png)
+![Flood gauge strapped to a shed wall, with the sensor wire running inside](docs/view_yard.png)
 
-**Interactive 3D model:** [view it online](https://claude.ai/artifact/73WavGVYFgETyoyXfjjkja), or open [`web/index.html`](web/index.html) through a local web server (`cd web && python3 -m http.server`), then visit http://localhost:8000. It has views for the yard, pulley, sensor (X-ray), float and weights, inlet holes, and the shed interior, plus a water-depth slider and a storm simulation.
-
-```
-      sensor pod (sealed)                         ESP32 indoors / in shed
-          ┌──┐   pulley                           ┌──────────────┐
-          │▣ │◯  ← magnet on axle    Cat5 cable   │ ESP32 + PSU  │
-          └──┘ ╱ ╲  ───────────────────────────── │ → Home Asst. │
-   ═══ cap ═══╪═══╪══                             └──────────────┘
-          ║   │   │ counterweight (outside pipe)
-  3" ABS  ║   │   ▮
-  pipe    ║ ┌─┴─┐
-          ║ │   │ bottle float
-  ~~~~~~~~║~│~~~│~~~~~~ water
-          ║ └───┘
-          ╚══ holes near bottom let water in
-```
+**Interactive 3D model:** [view it online](https://claude.ai/artifact/73WavGVYFgETyoyXfjjkja), or open [`web/index.html`](web/index.html) through a local web server (`cd web && python3 -m http.server`, then visit http://localhost:8000). The `web/` folder is the source of the online page. It has views for the yard, pulley, sensor (X-ray), float and weights, inlet holes, and the shed interior, plus a water-depth slider and a storm simulation.
 
 ## How it works
 
-1. **Stilling well.** A vertical 3" ABS (or PVC) pipe, black so it blends in, is strapped to a shed or house wall, fence post or stake. Three staggered rows of 12 mm holes in the bottom 100 mm let floodwater in. They also smooth out waves and keep debris away from the float.
+1. **Stilling well.** A 2 ft length of 3" ABS (or PVC) pipe, black so it blends in, is strapped to a shed or house wall with two standard pipe straps. Three staggered rows of 1/2" holes in the bottom 100 mm let floodwater in. They also smooth out waves and keep debris away from the float.
 
    ![Inlet holes at the bottom of the pipe](docs/view_inlet.png)
-2. **Float.** An empty 500–700 mL plastic bottle, no wider than 70 mm so it fits in 3" pipe (about 76 mm inside), with a little sand in the bottom so it hangs upright. It hangs from a ball chain down the centre of the pipe.
-3. **Pulley.** The chain runs over a 3D-printed sprocket pulley at the top of the pipe. The ball pockets mean the chain can't slip when wet.
-4. **Counterweight.** The other end of the chain hangs just outside the pipe and keeps the chain tight, so the float follows the water back down. Use an M8 bolt with a stack of washers (16 mm wide, so it clears the pipe wall by about 5 mm), and add or remove washers to tune it to about 100 g.
-5. **Sensor.** A 6×2.5 mm diametric magnet sits in the end of the pulley axle. An AS5600 magnetic encoder in a sealed pod reads the axle angle through a 1.2 mm plastic wall.
+
+2. **Cap and bracket.** A standard 3" ABS cap pushes onto the top of the pipe. A small printed bracket bolts onto the cap and holds the pulley and the sealed sensor pod.
+
+   ![Pulley bracket on a standard cap](docs/view_mechanism.png)
+
+3. **Float.** An empty 500–700 mL plastic bottle, no wider than 70 mm, with sand inside. It hangs from a ball chain through the centre of the cap.
+4. **Pulley.** The chain runs over a printed 32-pocket sprocket. The ball pockets mean wet chain can't slip, and one turn moves 192 mm of chain.
+5. **Counterweight.** The other end of the chain hangs just outside the pipe. It's an M8 bolt with a stack of washers (16 mm wide, clearing the pipe by about 9 mm), tuned to about 100 g.
+6. **Sensor.** A 6×2.5 mm diametric magnet sits in the end of the pulley axle. An AS5600 magnetic encoder in the sealed pod reads the axle angle through a 1.2 mm plastic wall.
 
    ![X-ray view of the sensor pod](docs/view_sensor.png)
-6. **ESP32.** It counts full turns and adds the angle. One pulley turn equals 180 mm of chain, so the AS5600's 4096 steps per turn give about 0.04 mm per count. Expect about 1 mm accuracy in practice.
+
+7. **ESP32.** It counts full turns and adds the angle: 4096 counts per 192 mm turn, about 0.05 mm per count. Expect about 1 mm accuracy in practice.
 
 ### How the weights balance
 
@@ -46,106 +37,112 @@ Built during the November 2026 San Francisco floods.
 - **Water arrives:** buoyancy has to supply the missing 50 g. A 66 mm bottle gets that from about 15 mm of submersion (50 cm³ of water). Above that the float lifts off and rides the surface.
 - **Water drops:** the float's extra 50 g pulls it back down, and the counterweight rises. The chain stays tight in both directions, so the pulley never skips.
 
-The rule:
-
 ```
-float weight in air  >  counterweight  >  float weight − buoyancy (at the depth you want it to float)
+float weight in air  >  counterweight  >  float weight − buoyancy
 ```
 
-Example: a 150 g float (bottle plus sand) with a 100 g counterweight. In air, the float has 50 g of net pull and drops to the bottom. In water, a 600 mL bottle gives up to about 600 g of lift, so it floats with only a few centimetres submerged.
+## What to make
 
-## Parts to make
+| Part | File | Make with | Notes |
+|---|---|---|---|
+| Bracket (pulley uprights and sensor pod) | `out/bracket.stl` / `.step` | 3D printer | Black ASA or PETG. Print lying on the pod's open face, with no supports. |
+| Sprocket pulley | `out/pulley.stl` / `.step` | 3D printer | Prints flat with no supports. Glue the magnet into the stub end. |
+| Sensor pod lid | `out/sensor_lid.stl` / `.step` | 3D printer | Seal with silicone and fix with 4× M3 screws. |
+| Cap drilling template | [`templates/cap_template.pdf`](templates/cap_template.pdf) | Paper | One 3/8" chain hole and three 3/16" bolt holes. |
+| Inlet hole template | [`templates/pipe_inlet_template.pdf`](templates/pipe_inlet_template.pdf) | Paper | Two strips that wrap round the pipe. 24 holes, 1/2". |
 
-| Part | File | How to make |
-|---|---|---|
-| Head (pipe cap, pulley uprights, sensor pod) | `out/head.stl` / `.step` | 3D print, black ASA or PETG. Print sleeve-down with tree supports under the top plate. |
-| Sprocket pulley | `out/pulley.stl` / `.step` | 3D print flat, 0.2 mm layers. No supports needed. |
-| Sensor pod lid | `out/sensor_lid.stl` / `.step` | 3D print with the lip facing up. |
-| Mounting plate | `out/mount_plate.dxf` / `.svg` | Laser cut (xTool P2) from 6 mm plywood or acrylic. Two hose clamps hold the pipe, and four screws attach it to the wall or post. |
+Print the templates at 100% ("Actual size") and check the 50 mm scale bar with a ruler before drilling.
 
-Source: [`cad/flood_head.py`](cad/flood_head.py) (build123d). Edit the parameters at the top and run `python cad/flood_head.py` to regenerate everything in `out/`. Check `chain_pitch` against your actual chain first.
+Sources:
+- [`cad/flood_head.py`](cad/flood_head.py) (build123d) for the printed parts.
+- [`templates/make_templates.py`](templates/make_templates.py) (no dependencies) for the PDFs.
+
+Edit the parameters and re-run. Measure your chain's pitch and your cap's outside diameter first.
+
+## Assembly
+
+1. Tape the inlet template round the bottom of the pipe and drill 24 holes, 1/2".
+2. Tape the cap template on the cap and drill the 3/8" centre hole and three 3/16" bolt holes.
+3. Bolt the printed bracket to the cap top with three M4 bolts.
+4. Glue the magnet into the pulley stub. Fit the AS5600 in the pod, then run the wire through the PG7 gland and seal the lid.
+5. Screw a 3/4" wood batten to the wall so the cap clears it. Strap the pipe to the batten and push the cap on.
+6. Fill the bottle with sand to about 150 g. Hang it on the chain down the centre hole, run the chain over the sprocket, and hook the counterweight on the other end. With the float on the bottom, the counterweight should hang at least 5 cm below the cap.
+7. Drill a small hole through the wall above flood level, pass the wire through, seal it with silicone, and connect the ESP32 inside.
 
 ### Key dimensions
 
 | | |
 |---|---|
 | Pipe OD | 88.9 mm (3" ABS DWV or 3" Sch40 PVC) |
+| Cap OD | about 99 mm (measure yours) |
 | Chain | #10 ball chain, 4.5 mm balls, 6.0 mm pitch (measure yours) |
-| Pulley | 30 pockets, 57.3 mm pitch diameter, 180 mm of chain per turn |
-| Counterweight drop | 57.3 mm from pipe centre, just outside the pipe wall |
-| Sensor wall | 1.2 mm. Magnet-to-chip distance about 2.5–3 mm, inside AS5600's 0.5–3 mm range |
-| Fasteners | 2× M4 set screws (cap to pipe), 4× M3×10 self-tapping (pod lid), PG7 cable gland |
+| Pulley | 32 pockets, 61.1 mm pitch diameter, 192 mm of chain per turn |
+| Counterweight | M8 bolt and washers, 61 mm from pipe centre, about 9 mm clear of the pipe |
+| Sensor wall | 1.2 mm. Magnet-to-chip distance about 2.5–3 mm, inside the AS5600's 0.5–3 mm range |
+| Drills | 1/2" (inlets), 3/8" (chain), 3/16" (bracket bolts) |
 
 ## Bill of materials
 
-Rough prices from online listings checked in November 2026, before tax and shipping. The ESP32, bolts, clamps, screws, USB power supply and gasket prices are typical figures, not checked against listings.
+Rough prices, before tax and shipping. Pipe, chain, AS5600 and gland prices come from online listings checked in November 2026. The cap, straps, ESP32-C3, bolts and screws are typical prices, not checked against listings.
 
 | Item | Qty | Est. cost (USD) | Notes |
 |---|---|---|---|
 | **Plumbing and hardware** | | | |
-| 3" ABS DWV pipe, 2 ft | 1 | $13–22 | Drill 3 rows of 12 mm holes in the bottom 100 mm. 3" PVC DWV costs about the same. |
-| #10 ball chain, 10 ft, with connectors | 1 | $10–45 | Nickel-plated steel at the low end, stainless at the high end. |
-| Counterweight: M8×80 bolt, nut, about 20 M8 washers | 1 set | $3–6 | Add or remove washers to tune it to about 100 g. |
-| Stainless hose clamps, 3" pipe size | 2 | $4–8 | Strap the pipe to the mounting plate. |
-| Screws: 2× M4 set, 4× M3×10 self-tapping, 4 exterior wood | 10 | $3–6 | Often already in the parts bin. |
-| Nylon cable glands, PG7 and PG9 | 10-pack each | $6–25 | PG7 on the sensor pod, PG9 through the shed wall. |
+| 3" ABS DWV pipe, 2 ft | 1 | $13–22 | Ask for an offcut. Drill the inlet holes using the paper template. |
+| 3" ABS DWV cap | 1 | $4–8 | Standard push-on cap. Drill it using the paper template. |
+| 3" two-hole pipe straps | 2 | $2–4 | Hold the pipe to the wall. |
+| Scrap 3/4" wood batten, about 40 cm | 1 | $0 | Spaces the pipe off the wall so the cap clears it. |
+| #10 ball chain, about 5 ft, plus 2 connectors | 1 | $4–8 | Nickel-plated steel, bought by the foot. |
+| Counterweight: M8×80 bolt, nut, about 20 washers | 1 set | $3–6 | Add or remove washers to tune it to about 100 g. |
+| 3× M4×12 bolts with nuts, 4× M3×10 screws, 4 wood screws | 11 | $2–4 | Often already in the parts bin. |
 | **Electronics** | | | |
-| AS5600 module with diametric magnet | 1 | $3–9 | Many modules include the magnet. |
-| ESP32 dev board (C3 or S3) | 1 | $5–12 | Any WiFi ESP32 works. |
-| Outdoor direct-burial Cat6, 50 ft | 1 | $20–40 | Bulk cable, not a pre-terminated patch lead. |
-| USB power supply and cable | 1 | $0–10 | Often on hand. |
-| Small box for the ESP32 | 1 | $0–10 | It sits indoors, so it doesn't need to be waterproof. |
-| Foam gasket tape and silica gel packets | 1 | $2–6 | Seal the pod lid and keep it dry. |
+| AS5600 module with diametric magnet | 1 | $2–9 | Many modules include the magnet. |
+| ESP32-C3 SuperMini (or any ESP32) | 1 | $3–6 | Small and cheap, with WiFi. |
+| PG7 nylon cable gland | 1 | $1–3 | On the sensor pod, facing down. |
+| 4-conductor wire, about 2 m | 1 | $0–3 | An old USB cable or Cat5 offcut works. The ESP32 sits just inside the wall. |
+| USB phone charger and cable | 1 | $0 | Reuse one you have. |
+| Silicone sealant | 1 | $0–5 | Seals the pod lid and the hole through the wall. |
 | **Made in-house** | | | |
-| 3D-printed head, pulley and lid, about 130 g of ASA or PETG | 3 | $3–5 | Filament cost only. |
-| Laser-cut mounting plate, 6 mm plywood | 1 | $2–4 | xTool P2. |
+| 3D-printed bracket, sprocket and lid, about 75 g of ASA or PETG | 3 | $1–2 | Filament cost only. |
+| Paper drilling templates | 2 sheets | $0 | From the templates folder. |
 | Plastic bottle and sand | 1 | $0 | Recycled. |
-| **Total** | | **$74–208** | About $100 with nickel chain and the small parts already on hand. |
+| **Total** | | **$35–80** | About $45 if the bolts, screws, charger and wire come from your parts bin. |
 
 Price sources:
 
 - [3" × 24" ABS pipe, Home Depot](https://www.homedepot.com/p/VPC-3-in-x-24-in-Plastic-ABS-Pipe-1203/202300520)
 - [3" × 2 ft ABS pipe, Supply On Time](https://supply-ontime.com/products/plastic-acrylonitrile-butadiene-styrene-abs-pipe-3-in-x-24-in)
-- [3" × 2 ft PVC DWV pipe, Home Depot](https://homedepot.com/p/Charlotte-Pipe-3-in-x-2-ft-PVC-DWV-Sch-40-Pipe-PVC073000200HA/100533056)
+- [#10 ball chain spool (about $0.80/ft), Family Hardware](https://www.familyhardware.com/product/lucky-line-10-100-ft-nickel-finished-stainless-steel-ball-chain/455296)
 - [#10 ball chain connectors, Zoro](https://www.zoro.com/midwest-fastener-10-x-316-brass-ball-chain-connectors-25pk-64625/i/G002521708/)
-- [#10 ball chain spool, Family Hardware](https://www.familyhardware.com/product/lucky-line-10-100-ft-nickel-finished-stainless-steel-ball-chain/455296)
-- [10 ft stainless #10 ball chain, Bearings Canada](https://bearingscanada.com/products/10-foot-stainless-steel-ball-chain-bead-size-10-ma)
 - [AS5600 module with magnet, Tinytronics](https://www.tinytronics.nl/shop/en/sensors/magnetic-field/as5600-magnetic-angle-sensor-encoder-module)
 - [AS5600 module, Fruugo](https://www.fruugo.ca/as5600-magnetic-encoder-module-magnetic-induction-angle-measurement-sensor-module-foc-12bit-high-precision-sensor/p-447636426)
 - [PG7/PG9 cable glands, element14](https://au.element14.com/multicomp-pro/pg9dg/gland-pg9-4-8mm-pk10/dp/1621062)
-- [PG9 cable gland, RS PRO](https://nz.rs-online.com/web/p/cable-glands/8229603)
-- [50 ft direct-burial Cat6A, Home Depot](https://homedepot.com/p/Syston-Cable-Technology-50-ft-Black-Direct-Burial-Cat-6A-Ethernet-Internet-Cable-700-MHz-Copper-Outside-Plant-Waterproof-Dual-Layer-Jacket-POE-1796-SB-BK-50/333523192)
-- [Direct-burial Cat6 by the foot, ShowMeCables](https://showmecables.com/85-600-340-bk)
 
-## Wiring: long cable to an indoor ESP32
+## Wiring
 
-![Cable through a wall gland to the ESP32 on a shelf inside the shed](docs/view_shed.png)
+![Wire through the shed wall to the ESP32 on a shelf inside](docs/view_shed.png)
 
-The cable leaves the sensor pod through a downward-facing PG7 gland. It then enters the shed through a second gland (PG9 or a 1/2" conduit gland) placed well above flood level. Leave a drip loop below the wall gland so water runs off instead of following the cable inside.
+The wire leaves the sensor pod through a downward-facing PG7 gland. It then passes through a small hole in the shed wall, above flood level, sealed with silicone. Leave a drip loop below the hole so water runs off instead of following the wire inside. Because the ESP32 sits just inside the wall, the wire is only about 2 m long.
 
-I2C (the AS5600's default interface) is unreliable past about 1 m. To keep the ESP32 inside the house or a shed, use one of these:
+**Use PWM output.** Set the AS5600's OUT pin to PWM (register `CONF.OUTS = 10`) and use three wires: 3.3 V, GND and OUT. The ESP32 measures the duty cycle (about 920 Hz) on any GPIO. PWM is the most reliable option. I2C usually works over 2 m with 2.2 kΩ pull-ups, but it isn't guaranteed.
 
-**Option A (simplest): PWM output.** Configure the AS5600's OUT pin for PWM output (register `CONF.OUTS = 10`). The breakout's DIR/PGO pins can stay at their defaults. Run 3.3 V, GND and OUT over one twisted pair of Cat5. The ESP32 measures the duty cycle (about 920 Hz) on any GPIO. This is reliable over 10–30 m. Put a 100 Ω series resistor and a small 1 nF capacitor at the ESP32 end.
-
-**Option B: differential I2C.** Put a PCA9615 board at each end of the Cat5 run. You keep full I2C access, including the magnet-strength status bits, at 30 m or more.
-
-Either way, at the ESP32:
+At the ESP32:
 
 ```
-level_mm = (turns * 4096 + raw_angle) / 4096 * 180  - zero_offset
+level_mm = (turns * 4096 + raw_angle) / 4096 * 192  - zero_offset
 ```
 
 - Sample at least every 0.5 s, so the pulley never turns more than half a revolution between samples. Floods rise far slower than that.
 - Store `turns` in NVS (flash) every few minutes and at each change. The other option is to re-zero at boot when the ground is dry.
-- Report to Home Assistant through ESPHome. The `as5600` component handles option B directly. For option A, use a `pulse_width` sensor plus a small lambda for turn counting.
+- Report to Home Assistant through ESPHome: a `pulse_width` sensor plus a small lambda for turn counting.
 
 ## Siting
 
-- Mount the pipe vertically against a house wall, fence post or a stake driven into the lowest spot of the yard where water collects. Low black pipe next to a house gets ignored.
-- Leave the bottom of the pipe a few centimetres above the ground on a brick, or drill plenty of 10 mm holes in the bottom 10 cm. Then silt can't seal it.
+- Mount the pipe against a house or shed wall at the lowest spot of the yard where water collects. Low black pipe next to a building gets ignored.
+- Stand the pipe on a brick so silt can't seal the bottom.
 - The counterweight drops as the water rises. Give it as much clear space below the cap as the float's travel.
-- Put the cap's rain drains and the pod's cable gland facing down.
+- Keep the pod's cable gland facing down.
 
 ## Status
 
-Concept and first CAD pass. Not yet printed or tested.
+Concept and CAD. Not yet printed or tested.

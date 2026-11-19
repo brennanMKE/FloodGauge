@@ -1,0 +1,75 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 3435 >>
+stream
+0 g BT /F2 16 Tf 42.52 742.68 Td (Flood Gauge: cap drilling template) Tj ET
+0 g BT /F1 9 Tf 42.52 720.00 Td (Fits the top of a 3 in. ABS DWV cap. Print at 100% \(Actual size\) and check the scale bar.) Tj ET
+0 g BT /F1 9 Tf 42.52 705.83 Td (Cut along the solid circle, tape it centred on the cap, centre-punch each cross, then drill.) Tj ET
+0 G 1.0 w [] 0 d 395.43 453.54 m 395.43 531.04 332.61 593.86 255.12 593.86 c 177.62 593.86 114.80 531.04 114.80 453.54 c 114.80 376.05 177.62 313.23 255.12 313.23 c 332.61 313.23 395.43 376.05 395.43 453.54 c S
+0.55 G 0.4 w [3 2] 0 d 56.37 411.02 238.44 85.04 re S
+0 G 0.3 w [] 0 d 238.11 453.54 m 272.13 453.54 l S
+0 G 0.3 w [] 0 d 255.12 436.54 m 255.12 470.55 l S
+0 G 0.8 w [] 0 d 269.29 453.54 m 269.29 461.37 262.95 467.72 255.12 467.72 c 247.29 467.72 240.94 461.37 240.94 453.54 c 240.94 445.72 247.29 439.37 255.12 439.37 c 262.95 439.37 269.29 445.72 269.29 453.54 c S
+0 G 0.4 w [] 0 d 248.03 453.54 m 262.20 453.54 l S
+0 G 0.4 w [] 0 d 255.12 446.46 m 255.12 460.63 l S
+0 G 0.8 w [] 0 d 284.17 479.06 m 284.17 482.58 281.32 485.43 277.80 485.43 c 274.27 485.43 271.42 482.58 271.42 479.06 c 271.42 475.53 274.27 472.68 277.80 472.68 c 281.32 472.68 284.17 475.53 284.17 479.06 c S
+0 G 0.4 w [] 0 d 272.13 479.06 m 283.46 479.06 l S
+0 G 0.4 w [] 0 d 277.80 473.39 m 277.80 484.72 l S
+0 G 0.8 w [] 0 d 284.17 428.03 m 284.17 431.55 281.32 434.41 277.80 434.41 c 274.27 434.41 271.42 431.55 271.42 428.03 c 271.42 424.51 274.27 421.65 277.80 421.65 c 281.32 421.65 284.17 424.51 284.17 428.03 c S
+0 G 0.4 w [] 0 d 272.13 428.03 m 283.46 428.03 l S
+0 G 0.4 w [] 0 d 277.80 422.36 m 277.80 433.70 l S
+0 G 0.8 w [] 0 d 221.81 453.54 m 221.81 457.07 218.96 459.92 215.43 459.92 c 211.91 459.92 209.06 457.07 209.06 453.54 c 209.06 450.02 211.91 447.17 215.43 447.17 c 218.96 447.17 221.81 450.02 221.81 453.54 c S
+0 G 0.4 w [] 0 d 209.76 453.54 m 221.10 453.54 l S
+0 G 0.4 w [] 0 d 215.43 447.87 m 215.43 459.21 l S
+0.5 G 0.5 g 0.4 w [] 0 d 85.28 453.54 m 85.28 455.42 83.76 456.94 81.88 456.94 c 80.00 456.94 78.48 455.42 78.48 453.54 c 78.48 451.66 80.00 450.14 81.88 450.14 c 83.76 450.14 85.28 451.66 85.28 453.54 c B
+0 G 0.3 w [] 0 d 246.61 464.88 m 184.25 651.97 l S
+0 g BT /F2 9 Tf 56.69 657.64 Td (Float chain: 10 mm \(3/8 in.\) drill) Tj ET
+0 G 0.3 w [] 0 d 283.46 425.20 m 362.83 368.50 l S
+0 g BT /F2 9 Tf 365.67 365.67 Td (Bracket bolts \(3x\):) Tj ET
+0 g BT /F2 9 Tf 365.67 351.50 Td (4.5 mm \(3/16 in.\) drill) Tj ET
+0 G 0.3 w [] 0 d 81.88 447.87 m 70.54 249.45 l S
+0 g BT /F1 8 Tf 42.52 238.11 Td (Counterweight chain hangs here, past the cap edge \(no hole\)) Tj ET
+0 g BT /F1 7 Tf 124.72 399.69 Td (dashed: printed bracket footprint) Tj ET
+0 G 1.5 w [] 0 d 56.69 289.13 m 453.54 289.13 l S
+0 g BT /F2 9 Tf 219.12 272.13 Td (WALL / SHED SIDE) Tj ET
+0 g BT /F1 8 Tf 283.46 606.61 Td (sensor pod side \(away from wall\)) Tj ET
+0 G 1.2 w [] 0 d 56.69 85.04 m 198.43 85.04 l S
+0 G 0.8 w [] 0 d 56.69 85.04 m 56.69 99.21 l S
+0 G 0.8 w [] 0 d 85.04 85.04 m 85.04 93.54 l S
+0 G 0.8 w [] 0 d 113.39 85.04 m 113.39 93.54 l S
+0 G 0.8 w [] 0 d 141.73 85.04 m 141.73 93.54 l S
+0 G 0.8 w [] 0 d 170.08 85.04 m 170.08 93.54 l S
+0 G 0.8 w [] 0 d 198.43 85.04 m 198.43 99.21 l S
+0 g BT /F1 8 Tf 56.69 70.87 Td (Scale check: this bar must measure 50 mm) Tj ET
+0 g BT /F1 8 Tf 56.69 56.69 Td (Cap OD assumed 99 mm. If your cap differs, centre the template by the cross, not the outline.) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000212 00000 n 
+0000000314 00000 n 
+0000000450 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3937
+%%EOF

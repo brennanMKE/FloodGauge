@@ -13,3 +13,6 @@ web/*.json -diff linguist-generated
 # Images
 *.png binary
 *.jpg binary
+
+# Printable templates
+*.pdf binary
