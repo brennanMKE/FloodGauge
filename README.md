@@ -4,7 +4,7 @@ A cheap, deliberately low-tech water level sensor, built from standard plumbing 
 
 Built during the November 2026 San Francisco floods.
 
-![Flood gauge strapped to a shed wall, with the sensor wire running inside](docs/view_yard.png)
+![Flood gauge strapped to the side of a small resin storage shed, with a solar panel on the roof](docs/view_yard.png)
 
 **Interactive 3D model:** [view it online](https://claude.ai/artifact/73WavGVYFgETyoyXfjjkja), or open [`web/index.html`](web/index.html) through a local web server (`cd web && python3 -m http.server`, then visit http://localhost:8000). The `web/` folder is the source of the online page. It has views for the yard, pulley, sensor (X-ray), float and weights, inlet holes, and the shed interior, plus a water-depth slider and a storm simulation.
 
@@ -107,6 +107,9 @@ Rough prices, before tax and shipping. Pipe, chain, AS5600 and gland prices come
 | Paper drilling templates | 2 sheets | $0 | From the templates folder. |
 | Plastic bottle and sand | 1 | $0 | Recycled. |
 | **Total** | | **$35–80** | About $45 if the bolts, screws, charger and wire come from your parts bin. |
+| **Optional** | | | |
+| Suncast BMS2000 vertical resin storage shed, 2 ft 8 in × 2 ft 1.5 in × 6 ft | 1 | $299 | Not in the total. A dry spot for the ESP32 if you don't have a shed or house wall to use. |
+| Solar and battery add-on (see below) | 1 | $16–31 | Not in the total. |
 
 Price sources:
 
@@ -117,6 +120,7 @@ Price sources:
 - [AS5600 module with magnet, Tinytronics](https://www.tinytronics.nl/shop/en/sensors/magnetic-field/as5600-magnetic-angle-sensor-encoder-module)
 - [AS5600 module, Fruugo](https://www.fruugo.ca/as5600-magnetic-encoder-module-magnetic-induction-angle-measurement-sensor-module-foc-12bit-high-precision-sensor/p-447636426)
 - [PG7/PG9 cable glands, element14](https://au.element14.com/multicomp-pro/pg9dg/gland-pg9-4-8mm-pk10/dp/1621062)
+- [Suncast BMS2000 shed, Home Depot](https://www.homedepot.com/p/Suncast-2-ft-8-25-in-X-2-ft-1-5-in-X-6-ft-Resin-Vertical-Storage-Shed-BMS2000/203702004)
 
 ## Wiring
 
@@ -135,6 +139,44 @@ level_mm = (turns * 4096 + raw_angle) / 4096 * 192  - zero_offset
 - Sample at least every 0.5 s, so the pulley never turns more than half a revolution between samples. Floods rise far slower than that.
 - Store `turns` in NVS (flash) every few minutes and at each change. The other option is to re-zero at boot when the ground is dry.
 - Report to Home Assistant through ESPHome: a `pulse_width` sensor plus a small lambda for turn counting.
+
+## Optional: solar and battery power
+
+The gauge can run without mains power. Use a single 18650 cell on the shed shelf, charged by a small panel on the shed roof. This only works with low-power firmware, because an ESP32 that keeps WiFi on all the time uses about 25 times more energy.
+
+### Daily energy budget
+
+| Load | How it runs | mAh/day |
+|---|---|---|
+| AS5600 | Low-power mode 3 (polls every 100 ms), about 1.5 mA | 36 |
+| ESP32-C3 | Light sleep, waking every 0.5 s to read the angle, about 1.5 mA average | 36 |
+| WiFi reports | Every 15 min when dry: about 3 s at 100 mA each | 8 |
+| Board regulator | About 40 µA. Remove the board's power LED, which draws 1–3 mA. | 1 |
+| **Dry days, normal use** | | **≈ 80** |
+| During a flood | Report every minute instead: +112 mAh | ≈ 190 |
+| For comparison | WiFi always on, about 80 mA | ≈ 1900 |
+
+### Sizing the panel and battery
+
+80 mAh at 3.7 V is about **0.3 Wh a day**, rising to 0.7 Wh on flood days.
+
+```
+panel W = daily Wh / (sun hours × losses) = 0.7 / (2.5 × 0.5) ≈ 0.6 W
+```
+
+San Francisco gets about 2.5 peak sun hours a day in December. Halve that to allow for charger losses, dirt and a less-than-ideal angle on the shed roof. Even then, **a 1 W panel covers normal use**. A **2 W, 6 V panel** gives headroom for grey weeks. On a storm day a panel only makes 10–20% of its rating, so the battery has to carry the storm.
+
+One 3000 mAh 18650 cell lasts about 15 days in flood mode with no sun, or about 5 weeks of dry days. After a storm, a 2 W panel puts back about 700 mAh on a December day, so even a flat cell is full again in about 4–5 days, sooner in summer.
+
+| Solar add-on part | Qty | Est. cost | Notes |
+|---|---|---|---|
+| 2 W 6 V mini solar panel | 1 | $6–12 | Mounted on the shed roof, tilted south. |
+| CN3791 solar Li-ion charger module | 1 | $3–6 | Matches the panel's voltage; a TP4056 ($1) also works. |
+| 18650 cell, 3000 mAh, protected | 1 | $5–8 | Use a second cell in parallel for extra margin. |
+| 18650 holder and a small box | 1 | $2–5 | Sits on the shelf beside the ESP32. |
+| **Solar add-on total** | | **$16–31** | Typical prices, not checked against listings. |
+
+Wiring: panel → charger IN; cell → charger BAT; charger OUT → ESP32 5V pin. The board's own regulator makes 3.3 V for the ESP32 and the AS5600. These current figures are estimates, so measure the real average with a USB power meter before relying on the battery.
 
 ## Siting
 

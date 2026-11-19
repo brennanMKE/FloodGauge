@@ -288,7 +288,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   <section id="bom">
     <h2>Bill of materials</h2>
     <p class="muted" style="max-width:68ch">Rough prices, before tax and shipping. Pipe, chain, AS5600 and gland prices come from online listings checked in November 2026. The cap, straps, ESP32-C3, bolts and screws are typical prices, not checked against listings.</p>
-    <div class="bom-total"><span class="eyebrow">Estimated total</span><span class="big">$35–80</span><span class="muted">About $45 if the bolts, screws, charger and wire come from your parts bin.</span></div>
+    <div class="bom-total"><span class="eyebrow">Estimated total</span><span class="big">$35–80</span><span class="muted">About $45 if the bolts, screws, charger and wire come from your parts bin. Optional extras: the shed ($299) and <a href="#solar">solar power</a> ($16–31).</span></div>
     <div class="table-wrap">
       <table class="bom">
         <thead><tr><th>Item</th><th>Qty</th><th>Est. cost</th><th>Notes</th></tr></thead>
@@ -312,6 +312,8 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
           <tr><td>3D-printed bracket, sprocket and lid, about 75 g of ASA or PETG</td><td class="mono">3</td><td class="mono num">$1–2</td><td>Filament cost only.</td></tr>
           <tr><td>Paper drilling templates</td><td class="mono">2 sheets</td><td class="mono num">$0</td><td>From the templates folder.</td></tr>
           <tr><td>Plastic bottle and sand</td><td class="mono">1</td><td class="mono num">$0</td><td>Recycled.</td></tr>
+          <tr class="group"><th colspan="4" scope="colgroup">Optional</th></tr>
+          <tr><td>Suncast BMS2000 vertical resin storage shed, 2 ft 8 in × 2 ft 1.5 in × 6 ft</td><td class="mono">1</td><td class="mono num">$299</td><td>Not in the total. A dry spot for the ESP32 if you don't have a shed or house wall to use.</td></tr>
         </tbody>
       </table>
     </div>
@@ -325,8 +327,54 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
         <li><a href="https://www.tinytronics.nl/shop/en/sensors/magnetic-field/as5600-magnetic-angle-sensor-encoder-module" target="_blank" rel="noopener">AS5600 module with magnet, Tinytronics</a></li>
         <li><a href="https://www.fruugo.ca/as5600-magnetic-encoder-module-magnetic-induction-angle-measurement-sensor-module-foc-12bit-high-precision-sensor/p-447636426" target="_blank" rel="noopener">AS5600 module, Fruugo</a></li>
         <li><a href="https://au.element14.com/multicomp-pro/pg9dg/gland-pg9-4-8mm-pk10/dp/1621062" target="_blank" rel="noopener">PG7/PG9 cable glands, element14</a></li>
+        <li><a href="https://www.homedepot.com/p/Suncast-2-ft-8-25-in-X-2-ft-1-5-in-X-6-ft-Resin-Vertical-Storage-Shed-BMS2000/203702004" target="_blank" rel="noopener">Suncast BMS2000 shed, Home Depot</a></li>
       </ul>
     </details>
+  </section>
+
+  <section id="solar">
+    <h2>Optional: solar and battery power</h2>
+    <p style="max-width:68ch">The gauge can run without mains power. Use a single 18650 cell on the shed shelf, charged by a small panel on the roof. This only works with low-power firmware, because an ESP32 that keeps WiFi on all the time uses about 25 times more energy.</p>
+    <div class="cols" style="margin-top:12px">
+      <div>
+        <h3>Daily energy budget</h3>
+        <div class="table-wrap">
+          <table class="bom">
+            <thead><tr><th>Load</th><th>How it runs</th><th>mAh/day</th></tr></thead>
+            <tbody>
+              <tr><td>AS5600</td><td>Low-power mode 3 (polls every 100 ms), about 1.5 mA</td><td class="mono num">36</td></tr>
+              <tr><td>ESP32-C3</td><td>Light sleep, waking every 0.5 s to read the angle, about 1.5 mA average</td><td class="mono num">36</td></tr>
+              <tr><td>WiFi reports</td><td>Every 15 min when dry: about 3 s at 100 mA each</td><td class="mono num">8</td></tr>
+              <tr><td>Board regulator</td><td>About 40 µA. Remove the board's power LED, which draws 1–3 mA.</td><td class="mono num">1</td></tr>
+              <tr class="group"><th colspan="2">Dry days, normal use</th><th class="mono num">≈ 80</th></tr>
+              <tr><td>During a flood</td><td>Report every minute instead: +112 mAh</td><td class="mono num">≈ 190</td></tr>
+              <tr><td>For comparison</td><td>WiFi always on, about 80 mA</td><td class="mono num">≈ 1900</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3>Sizing the panel and battery</h3>
+        <p>80 mAh at 3.7 V is about <strong>0.3 Wh a day</strong>, rising to 0.7 Wh on flood days.</p>
+        <div class="formula">panel W = daily Wh / (sun hours × losses)
+       = 0.7 / (2.5 × 0.5) ≈ 0.6 W</div>
+        <p style="margin-top:12px">San Francisco gets about 2.5 peak sun hours a day in December. Halve that to allow for charger losses, dirt and a less-than-ideal angle on the shed roof. Even then, <strong>a 1 W panel covers normal use</strong>. A <strong>2 W, 6 V panel</strong> gives headroom for grey weeks. On a storm day a panel only makes 10–20% of its rating, so the battery has to carry the storm.</p>
+        <p>One 3000 mAh 18650 cell lasts about 15 days in flood mode with no sun, or about 5 weeks of dry days. After a storm, a 2 W panel puts back about 700 mAh on a December day, so even a flat cell is full again in about 4–5 days, sooner in summer.</p>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin-top:16px">
+      <table class="bom">
+        <thead><tr><th>Solar add-on part</th><th>Qty</th><th>Est. cost</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>2 W 6 V mini solar panel</td><td class="mono">1</td><td class="mono num">$6–12</td><td>Mounted on the shed roof, tilted south.</td></tr>
+          <tr><td>CN3791 solar Li-ion charger module</td><td class="mono">1</td><td class="mono num">$3–6</td><td>Matches the panel's voltage; a TP4056 ($1) also works.</td></tr>
+          <tr><td>18650 cell, 3000 mAh, protected</td><td class="mono">1</td><td class="mono num">$5–8</td><td>Use a second cell in parallel for extra margin.</td></tr>
+          <tr><td>18650 holder and a small box</td><td class="mono">1</td><td class="mono num">$2–5</td><td>Sits on the shelf beside the ESP32.</td></tr>
+          <tr class="group"><th colspan="2">Solar add-on total</th><th class="mono num">$16–31</th><th>Not in the main total. Typical prices, not checked against listings.</th></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-top:10px">Wiring: panel → charger IN; cell → charger BAT; charger OUT → ESP32 5V pin. The board's own regulator makes 3.3 V for the ESP32 and the AS5600. These current figures are estimates, so measure the real average with a USB power meter before relying on the battery.</p>
   </section>
 
   <footer>First CAD pass, modelled in build123d. Not yet printed or tested.</footer>
@@ -381,9 +429,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   const chainMat = mat(0x9aa3a8, { metalness: 0.6, roughness: 0.35 });
   const steel = mat(0xb8c0c5, { metalness: 0.7, roughness: 0.3 });
   const grassMat = mat(0x5d7a45, { roughness: 1 });
-  const sidingMat = mat(0x7d8c72, { roughness: 0.85 });
-  const frontWallMat = mat(0x7d8c72, { roughness: 0.85 });
-  const roofMat = mat(0x3b3f42, { roughness: 0.8 });
+  const frontWallMat = mat(0xb7a48b, { roughness: 0.75 });
   const woodMat = mat(0xb08a5a, { roughness: 0.8 });
   const cableMat = mat(0x1f2326, { roughness: 0.7 });
 
@@ -420,36 +466,61 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   const water = box(7000, 7000, 1, waterMat, 0, 0, GROUND + 1);
   water.renderOrder = 5;
 
-  // shed: wall the gauge is strapped to is at y = -60 (outer face)
-  const SX0 = -700, SX1 = 1100, SY0 = -64, SY1 = -1660, SH = 2000, WT = 20;
-  const front = box(SX1 - SX0, WT, SH, frontWallMat, (SX0 + SX1) / 2, SY0 - WT / 2, GROUND + SH / 2);
-  box(SX1 - SX0, WT, SH, sidingMat, (SX0 + SX1) / 2, SY1 + WT / 2, GROUND + SH / 2);
-  box(WT, SY0 - SY1, SH, sidingMat, SX0 + WT / 2, (SY0 + SY1) / 2, GROUND + SH / 2);
-  box(WT, SY0 - SY1, SH, sidingMat, SX1 - WT / 2, (SY0 + SY1) / 2, GROUND + SH / 2);
-  // door on the +x end
-  box(6, 800, 1800, woodMat, SX1 + 3, -700, GROUND + 900);
-  // gable roof, ridge along x
-  const halfD = (SY0 - SY1) / 2 + 120, rise = 500, slope = Math.hypot(halfD, rise);
-  [1, -1].forEach(s => {
-    const r = new THREE.Mesh(new THREE.BoxGeometry(SX1 - SX0 + 240, slope, 18), roofMat);
-    r.position.set((SX0 + SX1) / 2, (SY0 + SY1) / 2 + s * halfD / 2, GROUND + SH + rise / 2);
-    r.rotation.x = -s * Math.atan2(rise, halfD);
-    M.add(r);
+  // Suncast BMS2000-style vertical resin shed: 819 W x 648 D x 1829 H mm on a concrete pad.
+  // Its side wall (outer face y = SY0) carries the gauge; doors face +x.
+  const SW = 819, SD = 648, SHH = 1829, PAD = 75, WT = 25, SY0 = -64;
+  const Z0 = GROUND + PAD, SYC = SY0 - SW / 2;
+  const resinMat = mat(0xb7a48b, { roughness: 0.75 });
+  const resinDark = mat(0xa38f75, { roughness: 0.8 });
+  const trimMat = mat(0x4b3a2f, { roughness: 0.6 });
+  box(SD + 260, SW + 70, PAD, mat(0xbdbab3, { roughness: 0.95 }), 130, SY0 - (SW + 70) / 2, GROUND + PAD / 2);   // pad
+  const wallH = SHH - 90;
+  box(SD + 8, SW + 8, 40, trimMat, 0, SYC, Z0 + 20);                                                // base trim
+  const front = box(SD, WT, wallH, frontWallMat, 0, SY0 - WT / 2, Z0 + 40 + wallH / 2);              // gauge side
+  box(SD, WT, wallH, resinMat, 0, SY0 - SW + WT / 2, Z0 + 40 + wallH / 2);                          // far side
+  box(WT, SW, wallH, resinMat, -SD / 2 + WT / 2, SYC, Z0 + 40 + wallH / 2);                         // back
+  const roof = box(SD + 50, SW + 50, 50, trimMat, -5, SYC, Z0 + SHH - 25); roof.rotation.y = 0.035;
+  // double doors on +x with louvers, grooves, X braces and a handle
+  const doorW = SW / 2 - 4, DX = SD / 2 - WT / 2;
+  [-1, 1].forEach(side => {
+    const yc = SYC + side * (doorW / 2 + 4);
+    box(WT, doorW, wallH, resinMat, DX, yc, Z0 + 40 + wallH / 2);
+    for (let i = 0; i < 7; i++) {
+      const sl = box(10, doorW - 70, 20, resinDark, DX + WT / 2 + 3, yc, Z0 + SHH - 160 - i * 34);
+      sl.rotation.y = -0.35;
+    }
+    for (let k = -2; k <= 2; k++) box(4, 3, wallH - 480, resinDark, DX + WT / 2 + 1, yc + k * (doorW / 6), Z0 + 60 + (wallH - 480) / 2);
+    const h = wallH - 520, ang = Math.atan2(doorW * 0.55, h);
+    [-1, 1].forEach(d => {
+      const xb = box(8, 26, Math.hypot(h, doorW * 0.55), resinDark, DX + WT / 2 + 4, yc, Z0 + 60 + h / 2);
+      xb.rotation.x = d * ang;
+    });
   });
-  // gable triangles
-  [SX0, SX1].forEach(x => {
-    const shp = new THREE.Shape();
-    shp.moveTo(-(SY0 - SY1) / 2, 0); shp.lineTo((SY0 - SY1) / 2, 0); shp.lineTo(0, rise - 10); shp.closePath();
-    const g = new THREE.ShapeGeometry(shp);
-    const m = new THREE.Mesh(g, mat(0x7d8c72, { side: THREE.DoubleSide, roughness: 0.85 }));
-    m.rotation.set(Math.PI / 2, Math.PI / 2, 0);
-    m.position.set(x, (SY0 + SY1) / 2, GROUND + SH);
-    M.add(m);
-  });
-  // shelf + ESP32 enclosure inside the shed
-  box(320, 200, 18, woodMat, 380, -190, 300);
-  box(110, 70, 50, mat(0xd7dcdf), 380, -170, 300 + 9 + 25);
-  box(40, 1.5, 22, mat(0x1d3f8f), 380, -134, 300 + 9 + 28);   // board peeking through clear lid side
+  box(4, 8, wallH, trimMat, DX + WT / 2 + 1, SYC, Z0 + 40 + wallH / 2);                              // door seam
+  const handle = box(22, 34, 150, trimMat, DX + WT / 2 + 11, SYC + 30, Z0 + 1050);
+  // gauge-side wall details (hidden when the wall goes see-through)
+  const sideDetails = new THREE.Group(); M.add(sideDetails);
+  for (let i = 0; i < 7; i++) {
+    const sl = new THREE.Mesh(new THREE.BoxGeometry(SD - 90, 10, 20), resinDark);
+    sl.position.set(0, SY0 + 3, Z0 + SHH - 160 - i * 34); sl.rotation.x = 0.35; sideDetails.add(sl);
+  }
+  for (let k = -4; k <= 4; k++) {
+    const gr = new THREE.Mesh(new THREE.BoxGeometry(3, 4, wallH - 480), resinDark);
+    gr.position.set(k * (SD / 10), SY0 + 1, Z0 + 60 + (wallH - 480) / 2); sideDetails.add(gr);
+  }
+  // optional 2 W solar panel on the roof, tilted toward the sun
+  const panel = new THREE.Group();
+  const pFrame = new THREE.Mesh(new THREE.BoxGeometry(150, 120, 6), mat(0x8d949a, { metalness: 0.5 })); panel.add(pFrame);
+  const pCell = new THREE.Mesh(new THREE.BoxGeometry(138, 108, 2), mat(0x1b2a4a, { roughness: 0.25, metalness: 0.3 })); pCell.position.z = 3.5; panel.add(pCell);
+  panel.rotation.y = 0.5; panel.position.set(80, SYC + 200, Z0 + SHH + 50); M.add(panel);
+  const pLeg = box(10, 10, 60, trimMat, 40, SYC + 200, Z0 + SHH + 20);
+  // optional 18650 battery + charger box beside the ESP32
+  box(80, 50, 40, mat(0x2a2d30), 230, -170, 300 + 7.5 + 20);
+
+  // built-in shelf + ESP32 enclosure, near the gauge-side wall
+  box(SD - 2 * WT, SW - 2 * WT, 15, resinMat, 0, SYC, 300);
+  box(110, 70, 50, mat(0xd7dcdf), 120, -170, 300 + 7.5 + 25);
+  box(40, 1.5, 22, mat(0x1d3f8f), 120, -134.5, 300 + 7.5 + 28);
 
   // 3/4" wood batten on the wall + two standard 3" two-hole pipe straps
   box(45, 19, 360, woodMat, 0, -54.5, -250);
@@ -514,7 +585,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   // cable: pod gland -> around the pipe -> wall gland -> ESP32 on the shelf
   const glandPod = [AXIS_X, 20.7, AXIS_Z - 18];
   const pts = [glandPod, [AXIS_X, 21, 8], [AXIS_X + 5, 60, -20], [45, 70, -40], [85, 35, -60], [115, -25, -70],
-    [120, -64, -70], [125, -110, -70], [160, -130, 60], [260, -150, 250], [340, -165, 320], [360, -170, 330]]
+    [120, -64, -70], [125, -110, -70], [135, -120, 80], [128, -128, 250], [122, -132, 320], [120, -134, 332]]
     .map(p => new THREE.Vector3(p[0], p[1], p[2]));
   M.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 120, 3, 8, false), cableMat));
   // glands: pod (PG7, facing down) and wall
@@ -573,7 +644,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   function label(key, text, size, pos, accent) { L[key] = makeLabel(text, size, accent); L[key].position.copy(V(...pos)); }
   label('gauge', 'Flood gauge (3" black ABS)', 900, [0, 0, 260]);
   label('wallgland', 'Cable through shed wall', 900, [260, 0, -40]);
-  label('esp', 'ESP32 + USB power, dry inside', 900, [380, -170, 420]);
+  label('esp', 'ESP32 + USB power, dry inside', 900, [120, -170, 420]);
   label('pulley', 'Sprocket: 192 mm of chain per turn', 150, [-28, 0, 100]);
   label('toFloat', 'to float', 70, [25, 0, -40]);
   label('toCw', 'to counterweight', 100, [-95, 0, -40]);
@@ -672,20 +743,20 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   xrayBox.addEventListener('change', () => setXray(xrayBox.checked));
 
   const VIEWS = {
-    yard:      { t: [100, -300, -200], c: [1800, 2300, 1100], xray: false, arrows: false, shed: false },
+    yard:      { t: [100, -380, 250],  c: [2700, 2500, 1900], xray: false, arrows: false, shed: false },
     mechanism: { t: [-28, 0, 20],      c: [120, 330, 120],    xray: false, arrows: false, shed: false },
     sensor:    { t: [-28, 15, 40],     c: [150, 170, 105],    xray: true,  arrows: false, shed: false },
     forces:    { t: [0, 0, -330],      c: [380, 1150, -250],  xray: true,  arrows: true,  shed: false },
     inlet:     { t: [0, 0, -540],      c: [330, 480, -440],   xray: false, arrows: false, shed: false },
-    shed:      { t: [200, -150, 80],   c: [1150, 1350, 650],   xray: false, arrows: false, shed: true },
+    shed:      { t: [80, -220, 60],    c: [820, 1150, 560],    xray: false, arrows: false, shed: true },
   };
   const NOTES = {
-    yard: 'The gauge is strapped to the shed wall at the low point of the yard with two standard pipe straps. One short wire runs from the sensor pod into the shed.',
+    yard: 'The gauge is strapped to the side of a small resin storage shed with two standard pipe straps. One short wire runs from the sensor pod into the shed.',
     mechanism: 'The float chain drops through the centre hole into the pipe. The counterweight chain drops through the hole in the side tab, outside the pipe. When water lifts the float, the counterweight takes up the slack and turns the pulley.',
     sensor: 'X-ray view. The red/blue magnet turns with the axle, and the AS5600 reads its angle through the sealed pod wall. No shaft seal is needed.',
     forces: 'In air the float (150 g) outweighs the counterweight (100 g), so it sinks to the bottom. Water only has to supply about 50 g of lift, which takes ~15 mm of submersion. Then the float rides up and down with the water.',
     inlet: 'Three rows of 1/2" holes in the bottom 100 mm let floodwater in, while waves and debris mostly stay out. Drill them using the paper template.',
-    shed: 'The wire passes through a sealed hole in the shed wall, well above flood level. The ESP32 and its charger sit on a dry shelf inside.',
+    shed: 'The wire passes through a sealed hole in the side wall of the shed, well above flood level. The ESP32 sits on the built-in shelf about 90 cm off the ground, powered by USB or by the optional battery and the small solar panel on the roof.',
   };
   let tween = null, current = 'yard';
   function go(name, instant) {
@@ -694,7 +765,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
     out('note').textContent = NOTES[name];
     setXray(v.xray);
     arrowsOn = v.arrows; arrows.forEach(a => a.visible = arrowsOn);
-    frontWallMat.transparent = v.shed; frontWallMat.opacity = v.shed ? 0.18 : 1; frontWallMat.depthWrite = !v.shed; frontWallMat.needsUpdate = true;
+    sideDetails.visible = !v.shed; frontWallMat.transparent = v.shed; frontWallMat.opacity = v.shed ? 0.18 : 1; frontWallMat.depthWrite = !v.shed; frontWallMat.needsUpdate = true;
     Object.values(L).forEach(s => s.visible = false);
     const toC = V(...v.c), toT = V(...v.t);
     if (instant || reduceMotion) { camera.position.copy(toC); controls.target.copy(toT); controls.update(); tween = null; }
