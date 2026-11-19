@@ -118,6 +118,17 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 
+/* bill of materials */
+.muted { color: var(--muted); }
+.bom-total { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin: 8px 0 16px; }
+.bom-total .big { font-size: 44px; }
+table.bom td.num { text-align: right; padding-right: 16px; }
+table.bom tr.group th { padding-top: 18px; color: var(--accent); border-bottom: 1px solid var(--line); }
+.sources { margin-top: 14px; font-size: 13px; }
+.sources summary { cursor: pointer; color: var(--muted); }
+.sources ul { margin-top: 8px; }
+a { color: var(--accent); }
+
 /* content */
 .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 48px; }
 .cols > * { min-width: 0; }
@@ -207,7 +218,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
         <li><span class="k">Pipe</span><p>A 3" ABS or PVC pipe is strapped upright to a wall or post. Holes near the bottom let floodwater in and keep waves and debris out.</p></li>
         <li><span class="k">Float</span><p>A 500–700 mL bottle, at most 70 mm wide, with a spoon of sand so it hangs upright.</p></li>
         <li><span class="k">Pulley</span><p>A printed sprocket with 30 ball pockets. Wet chain can't slip. One turn moves 180 mm of chain.</p></li>
-        <li><span class="k">Counter&shy;weight</span><p>Sand in a capped 1" pipe, hanging outside the pipe. It keeps the chain tight so the float follows the water down again.</p></li>
+        <li><span class="k">Counter&shy;weight</span><p>An M8 bolt with a stack of washers, hanging just outside the pipe. Add or remove washers to tune it to about 100 g. It keeps the chain tight so the float follows the water down again.</p></li>
         <li><span class="k">Sensor</span><p>A diametric magnet in the axle end and an AS5600 behind a 1.2 mm wall. That gives 4096 counts per turn, about 0.04 mm per count.</p></li>
       </ul>
     </div>
@@ -281,6 +292,54 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
     </div>
   </section>
 
+  <section id="bom">
+    <h2>Bill of materials</h2>
+    <p class="muted" style="max-width:68ch">Rough prices from online listings checked in November 2026, before tax and shipping. The ESP32, bolts, clamps, screws, USB power supply and gasket prices are typical figures, not checked against listings.</p>
+    <div class="bom-total"><span class="eyebrow">Estimated total</span><span class="big">$74–208</span><span class="muted">About $100 with nickel chain and the small parts already on hand.</span></div>
+    <div class="table-wrap">
+      <table class="bom">
+        <thead><tr><th>Item</th><th>Qty</th><th>Est. cost</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr class="group"><th colspan="4" scope="colgroup">Plumbing and hardware</th></tr>
+          <tr><td>3" ABS DWV pipe, 2 ft</td><td class="mono">1</td><td class="mono num">$13–22</td><td>Drill 3 rows of 12 mm holes in the bottom 100 mm. 3" PVC DWV costs about the same.</td></tr>
+          <tr><td>#10 ball chain, 10 ft, with connectors</td><td class="mono">1</td><td class="mono num">$10–45</td><td>Nickel-plated steel at the low end, stainless at the high end.</td></tr>
+          <tr><td>Counterweight: M8×80 bolt, nut, about 20 M8 washers</td><td class="mono">1 set</td><td class="mono num">$3–6</td><td>Add or remove washers to tune it to about 100 g.</td></tr>
+          <tr><td>Stainless hose clamps, 3" pipe size</td><td class="mono">2</td><td class="mono num">$4–8</td><td>Strap the pipe to the mounting plate.</td></tr>
+          <tr><td>Screws: 2× M4 set, 4× M3×10 self-tapping, 4 exterior wood</td><td class="mono">10</td><td class="mono num">$3–6</td><td>Often already in the parts bin.</td></tr>
+          <tr><td>Nylon cable glands, PG7 and PG9</td><td class="mono">10-pack each</td><td class="mono num">$6–25</td><td>PG7 on the sensor pod, PG9 through the shed wall.</td></tr>
+          <tr class="group"><th colspan="4" scope="colgroup">Electronics</th></tr>
+          <tr><td>AS5600 module with diametric magnet</td><td class="mono">1</td><td class="mono num">$3–9</td><td>Many modules include the magnet.</td></tr>
+          <tr><td>ESP32 dev board (C3 or S3)</td><td class="mono">1</td><td class="mono num">$5–12</td><td>Any WiFi ESP32 works.</td></tr>
+          <tr><td>Outdoor direct-burial Cat6, 50 ft</td><td class="mono">1</td><td class="mono num">$20–40</td><td>Bulk cable, not a pre-terminated patch lead.</td></tr>
+          <tr><td>USB power supply and cable</td><td class="mono">1</td><td class="mono num">$0–10</td><td>Often on hand.</td></tr>
+          <tr><td>Small box for the ESP32</td><td class="mono">1</td><td class="mono num">$0–10</td><td>It sits indoors, so it doesn't need to be waterproof.</td></tr>
+          <tr><td>Foam gasket tape and silica gel packets</td><td class="mono">1</td><td class="mono num">$2–6</td><td>Seal the pod lid and keep it dry.</td></tr>
+          <tr class="group"><th colspan="4" scope="colgroup">Made in-house</th></tr>
+          <tr><td>3D-printed head, pulley and lid, about 130 g of ASA or PETG</td><td class="mono">3</td><td class="mono num">$3–5</td><td>Filament cost only.</td></tr>
+          <tr><td>Laser-cut mounting plate, 6 mm plywood</td><td class="mono">1</td><td class="mono num">$2–4</td><td>xTool P2.</td></tr>
+          <tr><td>Plastic bottle and sand</td><td class="mono">1</td><td class="mono num">$0</td><td>Recycled.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <details class="sources">
+      <summary>Price sources</summary>
+      <ul class="plain">
+        <li><a href="https://www.homedepot.com/p/VPC-3-in-x-24-in-Plastic-ABS-Pipe-1203/202300520" target="_blank" rel="noopener">3" × 24" ABS pipe, Home Depot</a></li>
+        <li><a href="https://supply-ontime.com/products/plastic-acrylonitrile-butadiene-styrene-abs-pipe-3-in-x-24-in" target="_blank" rel="noopener">3" × 2 ft ABS pipe, Supply On Time</a></li>
+        <li><a href="https://homedepot.com/p/Charlotte-Pipe-3-in-x-2-ft-PVC-DWV-Sch-40-Pipe-PVC073000200HA/100533056" target="_blank" rel="noopener">3" × 2 ft PVC DWV pipe, Home Depot</a></li>
+        <li><a href="https://www.zoro.com/midwest-fastener-10-x-316-brass-ball-chain-connectors-25pk-64625/i/G002521708/" target="_blank" rel="noopener">#10 ball chain connectors, Zoro</a></li>
+        <li><a href="https://www.familyhardware.com/product/lucky-line-10-100-ft-nickel-finished-stainless-steel-ball-chain/455296" target="_blank" rel="noopener">#10 ball chain spool, Family Hardware</a></li>
+        <li><a href="https://bearingscanada.com/products/10-foot-stainless-steel-ball-chain-bead-size-10-ma" target="_blank" rel="noopener">10 ft stainless #10 ball chain, Bearings Canada</a></li>
+        <li><a href="https://www.tinytronics.nl/shop/en/sensors/magnetic-field/as5600-magnetic-angle-sensor-encoder-module" target="_blank" rel="noopener">AS5600 module with magnet, Tinytronics</a></li>
+        <li><a href="https://www.fruugo.ca/as5600-magnetic-encoder-module-magnetic-induction-angle-measurement-sensor-module-foc-12bit-high-precision-sensor/p-447636426" target="_blank" rel="noopener">AS5600 module, Fruugo</a></li>
+        <li><a href="https://au.element14.com/multicomp-pro/pg9dg/gland-pg9-4-8mm-pk10/dp/1621062" target="_blank" rel="noopener">PG7/PG9 cable glands, element14</a></li>
+        <li><a href="https://nz.rs-online.com/web/p/cable-glands/8229603" target="_blank" rel="noopener">PG9 cable gland, RS PRO</a></li>
+        <li><a href="https://homedepot.com/p/Syston-Cable-Technology-50-ft-Black-Direct-Burial-Cat-6A-Ethernet-Internet-Cable-700-MHz-Copper-Outside-Plant-Waterproof-Dual-Layer-Jacket-POE-1796-SB-BK-50/333523192" target="_blank" rel="noopener">50 ft direct-burial Cat6A, Home Depot</a></li>
+        <li><a href="https://showmecables.com/85-600-340-bk" target="_blank" rel="noopener">Direct-burial Cat6 by the foot, ShowMeCables</a></li>
+      </ul>
+    </details>
+  </section>
+
   <footer>First CAD pass, modelled in build123d. Not yet printed or tested.</footer>
 </div>
 
@@ -292,7 +351,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   const PITCH_R = 28.6479, AXIS_X = -28.6479, AXIS_Z = 43.1479, CW_X = -57.2958;
   const PIPE_OR = 44.45, PIPE_IR = 38.0, PIPE_LEN = 600, GROUND = -PIPE_LEN;
   const FLOAT_H = 200, FLOAT_R = 33, CHAIN_R = 2.25;
-  const CW_LEN = 150, CW_R = 16.7;
+  const CW_LEN = 80, CW_R = 8;
   const FLOAT_G = 150, CW_G = 100;                       // grams
   const AREA_CM2 = Math.PI * 3.3 * 3.3;                  // bottle cross-section
   const DRAFT = (FLOAT_G - CW_G) / AREA_CM2 * 10;        // mm submerged when floating (~15)
@@ -423,10 +482,12 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   const capB = zCyl(14, 10, mat(0x2e6fb0)); capB.position.z = 200; floatG.add(capB);
   M.add(floatG);
 
-  // counterweight: sand in capped 1" pipe
+  // counterweight: M8 bolt with a washer stack (16 mm wide, clears the pipe by ~5 mm)
   const cwG = new THREE.Group();
-  const cwBody = zCyl(CW_R, CW_LEN, blackABS); cwBody.position.z = -CW_LEN / 2; cwG.add(cwBody);
-  [-9, -CW_LEN + 9].forEach(z => { const c = zCyl(CW_R + 2.5, 18, blackABS); c.position.z = z; cwG.add(c); });
+  const bolt = zCyl(4, CW_LEN, steel, false, 16); bolt.position.z = -CW_LEN / 2; cwG.add(bolt);
+  const boltHead = zCyl(6.5, 5.5, steel, false, 6); boltHead.position.z = -2.75; cwG.add(boltHead);
+  for (let i = 0; i < 20; i++) { const w = zCyl(CW_R, 1.5, steel, false, 24); w.position.z = -CW_LEN + 8 + i * 1.7; cwG.add(w); }
+  const nut = zCyl(6.5, 6.5, steel, false, 6); nut.position.z = -CW_LEN + 4; cwG.add(nut);
   M.add(cwG);
 
   // chain
@@ -618,7 +679,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   };
   const NOTES = {
     yard: 'The gauge is strapped to the shed wall at the low point of the yard. One cable runs from the sensor pod into the shed.',
-    mechanism: 'Float chain on the right and counterweight chain on the left. When water lifts the float, the counterweight takes up the slack and turns the pulley.',
+    mechanism: 'The float chain drops through the centre hole into the pipe. The counterweight chain drops through the hole in the side tab, outside the pipe. When water lifts the float, the counterweight takes up the slack and turns the pulley.',
     sensor: 'X-ray view. The red/blue magnet turns with the axle, and the AS5600 reads its angle through the sealed pod wall. No shaft seal is needed.',
     forces: 'In air the float (150 g) outweighs the counterweight (100 g), so it sinks to the bottom. Water only has to supply about 50 g of lift, which takes ~15 mm of submersion. Then the float rides up and down with the water.',
     inlet: 'Rows of 12 mm holes in the bottom 100 mm let floodwater in, while waves and debris mostly stay out.',
